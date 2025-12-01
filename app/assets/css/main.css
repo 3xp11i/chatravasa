@@ -1,0 +1,81 @@
+/*
+  FILE: app/assets/css/main.css
+  PURPOSE: Global styles for Manav Boys Hostel Meal Management app.
+  INCLUDES: Tailwind CSS base, mobile-first resets, and custom utility classes.
+  TODO: Add custom component styles, color palette, and typography as needed.
+*/
+
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Custom CSS Variables (Design Tokens)
+   TODO: Define your color palette, spacing, and typography scales
+--------------------------------------------------------------------------- */
+:root {
+  --color-primary: #4CAF50;
+  --color-primary-dark: #388E3C;
+  --color-secondary: #2196F3;
+  --color-danger: #f44336;
+  --color-warning: #FF9800;
+  --color-success: #4CAF50;
+  --color-background: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-text: #212121;
+  --color-text-muted: #757575;
+}
+
+/* ---------------------------------------------------------------------------
+   Mobile-First Base Resets
+--------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* ---------------------------------------------------------------------------
+   Utility Classes
+   TODO: Add app-specific utilities as needed
+--------------------------------------------------------------------------- */
+.container-app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Card component base */
+.card {
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+/* Big number display for cook dashboard */
+.stat-number {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   PWA Install Button Styles
+--------------------------------------------------------------------------- */
+.pwa-install-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
