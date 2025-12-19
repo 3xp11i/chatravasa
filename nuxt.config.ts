@@ -101,7 +101,7 @@ export default defineNuxtConfig({
 
 		// Public keys (exposed to client via useRuntimeConfig().public)
 		public: {
-			// supabaseUrl: "https://zsiwszrdlapzfmegeqkn.supabase.co",
+			// supabaseUrl: "",
 			// supabaseAnonKey: "",
 			// appName: "Chatravasa Management",
 		},
