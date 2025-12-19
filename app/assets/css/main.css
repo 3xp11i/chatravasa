@@ -1,40 +1,56 @@
-/*
-  FILE: app/assets/css/main.css
-  PURPOSE: Global styles for Manav Boys Hostel Meal Management app.
-  INCLUDES: Tailwind CSS base, mobile-first resets, and custom utility classes.
-  TODO: Add custom component styles, color palette, and typography as needed.
-*/
-
 @import "tailwindcss";
+/* Tell Tailwind v4 where to scan for class usage */
+@source "./app/**/*.{vue,js,ts}", "./components/**/*.{vue,js,ts}", "./layouts/**/*.{vue,js,ts}", "./pages/**/*.{vue,js,ts}", "./plugins/**/*.{js,ts}", "./nuxt.config.{js,ts}";
 
-/* ---------------------------------------------------------------------------
-   Custom CSS Variables (Design Tokens)
-   TODO: Define your color palette, spacing, and typography scales
---------------------------------------------------------------------------- */
-:root {
+@theme {
+  /* Custom Colors */
   --color-primary: #4CAF50;
   --color-primary-dark: #388E3C;
   --color-secondary: #2196F3;
   --color-danger: #f44336;
   --color-warning: #FF9800;
   --color-success: #4CAF50;
-  --color-background: #f5f5f5;
+  --color-background: #FFEE91;
   --color-surface: #ffffff;
   --color-text: #212121;
   --color-text-muted: #757575;
+  
+  /* Font Families */
+  --font-sans: 'Inter', sans-serif;
+  --font-hindi: 'Poppins', sans-serif;
+  
+  /* Custom Spacing */
+  --spacing-xs: clamp(0.25rem, 1vw, 0.5rem);
+  --spacing-sm: clamp(0.5rem, 2vw, 0.75rem);
+  --spacing-md: clamp(0.75rem, 3vw, 1rem);
+  --spacing-lg: clamp(1rem, 4vw, 1.5rem);
+  --spacing-xl: clamp(1.5rem, 5vw, 2rem);
+  --spacing-2xl: clamp(2rem, 6vw, 3rem);
+  
+  /* Custom Font Sizes */
+  --font-size-btn: clamp(0.875rem, 2.5vw, 1rem);
+  --font-size-body: clamp(0.875rem, 2vw, 1rem);
+  --font-size-small: clamp(0.75rem, 1.5vw, 0.875rem);
 }
 
 /* ---------------------------------------------------------------------------
    Mobile-First Base Resets
 --------------------------------------------------------------------------- */
 * {
+  /* margin: 0; */
+  /* padding: 0; */
   box-sizing: border-box;
 }
 
+a, button, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
 html {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 16px; /* Base 16px for mobile */
 }
 
 body {
@@ -43,39 +59,340 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
   min-height: 100vh;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Typography - Mobile First
+--------------------------------------------------------------------------- */
+h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1.2;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  line-height: 1.3;
+  font-weight: 600;
+  margin-bottom: 0.875rem;
+}
+
+h3 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.4;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+h4 {
+  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+  line-height: 1.4;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+h5 {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
+  line-height: 1.5;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+h6 {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  line-height: 1.5;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+small {
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  line-height: 1.4;
+}
+
+strong, b {
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+   Links - Mobile First
+--------------------------------------------------------------------------- */
+a {
+  color: var(--color-black);
+  text-decoration: none;
+  font-size: inherit;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  color: var(--color-primary);
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons - Mobile First (44px minimum for touch targets)
+--------------------------------------------------------------------------- */
+button {
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  padding: clamp(0.625rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.25rem);
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  min-height: 44px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.greenBtn {
+  padding: clamp(0.625rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.25rem);
+  border-radius: 0.5rem;
+  color: var(--color-surface);
+  background-color: var(--color-primary);
+}
+
+button.secondary {
+  color: var(--color-surface);
+  background-color: var(--color-secondary);
+}
+
+button.outline {
+  background-color: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+
+button.tapCircle:active{
+  background-color: rgba(122, 122, 122, 0.29);
+}
+
+/* Desktop: Smaller buttons */
+@media (min-width: 1024px) {
+  button {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    min-height: 36px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Form Elements - Mobile First (min 16px to prevent iOS zoom)
+--------------------------------------------------------------------------- */
+input, select, textarea {
+  font-size: 1rem; /* Prevents iOS zoom */
+  padding: clamp(0.625rem, 2vw, 0.75rem) clamp(0.75rem, 2.5vw, 1rem);
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  min-height: 44px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+input:disabled, select:disabled, textarea:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+label {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  font-weight: 500;
+  margin-bottom: 0.375rem;
+  display: block;
+  color: var(--color-text);
+}
+
+/* Desktop: Slightly smaller forms */
+@media (min-width: 1024px) {
+  input, select, textarea {
+    padding: 0.625rem 0.875rem;
+    min-height: 40px;
+  }
+  
+  textarea {
+    min-height: 100px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Lists - Mobile First
+--------------------------------------------------------------------------- */
+ul, ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+li {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+ul ul, ol ol {
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Tables - Mobile First (scroll on small screens)
+--------------------------------------------------------------------------- */
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+}
+
+th, td {
+  padding: clamp(0.5rem, 2vw, 0.75rem);
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+  font-weight: 600;
+  background-color: #f5f5f5;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  table {
+    font-size: 0.875rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Card/Container - Mobile First
+--------------------------------------------------------------------------- */
+.card {
+  background-color: var(--color-surface);
+  border-radius: clamp(0.5rem, 2vw, 1rem);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 1.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Container/Layout - Mobile First
+--------------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 1.5rem);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 3rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Images - Responsive by default
+--------------------------------------------------------------------------- */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* ---------------------------------------------------------------------------
    Utility Classes
-   TODO: Add app-specific utilities as needed
 --------------------------------------------------------------------------- */
-.container-app {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 1rem;
+.hindiFont {
+  font-family: "Poppins", sans-serif;
 }
 
-/* Card component base */
-.card {
-  background: var(--color-surface);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
+.text-center {
+  text-align: center;
 }
 
-/* Big number display for cook dashboard */
-.stat-number {
-  font-size: 3rem;
-  font-weight: 700;
-  line-height: 1;
+.text-right {
+  text-align: right;
+}
+
+.hidden {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* ---------------------------------------------------------------------------
-   PWA Install Button Styles
+   Print Styles
 --------------------------------------------------------------------------- */
-.pwa-install-btn {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 1000;
+@media print {
+  body {
+    background-color: white;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
 }

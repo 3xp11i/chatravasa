@@ -1,58 +1,50 @@
-// FILE: nuxt.config.ts
-// PURPOSE: Main Nuxt 4 configuration file for Manav Boys Hostel Meal Management app.
-// INCLUDES: PWA config (already set), Tailwind CSS, and placeholders for Supabase integration.
-// TODO: Add Supabase module when implementing auth and database features.
-
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
-	// ---------------------------------------------------------------------------
-	// Nuxt 4 Compatibility
-	// ---------------------------------------------------------------------------
-	compatibilityDate: "2025-07-15",
-	devtools: { enabled: true },
+	compatibilityDate: "2025-12-18",
+	devtools: { enabled: false },
 
-	// Nuxt 4 future flags
 	future: {
 		compatibilityVersion: 4,
 	},
 
-	// ---------------------------------------------------------------------------
-	// Modules
-	// TODO: Add @nuxtjs/supabase when implementing authentication
-	// ---------------------------------------------------------------------------
-	modules: ["@vite-pwa/nuxt", "@nuxtjs/supabase"],
+	modules: [
+		"@vite-pwa/nuxt",
+		"@nuxtjs/supabase",
+		"@nuxt/fonts",
+		"@vueuse/nuxt",
+	],
 
-	// ---------------------------------------------------------------------------
-	// Vite Plugins (Tailwind CSS)
-	// ---------------------------------------------------------------------------
 	vite: {
 		plugins: [tailwindcss()],
 	},
+	css: ["~/assets/css/main.css", "vue-final-modal/style.css"],
 
-	// ---------------------------------------------------------------------------
-	// Global CSS
-	// ---------------------------------------------------------------------------
-	css: ["~/assets/css/main.css"],
-
-	// ---------------------------------------------------------------------------
-	// PWA Configuration (already configured)
-	// ---------------------------------------------------------------------------
 	pwa: {
 		registerType: "autoUpdate",
+		includeAssets: [
+			"favicon.ico",
+			"apple-touch-icon-180x180.png",
+			"maskable-icon-512x512.png",
+		],
 		workbox: {
-			// TODO: Add custom caching strategies for API routes and assets
-			// globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+			globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+			navigateFallback: null,
+		},
+		client: {
+			installPrompt: true,
 		},
 		devOptions: {
-			enabled: false, // Disable SW in dev to avoid weird reloads
+			enabled: true,
 			type: "module",
+			suppressWarnings: true,
+			navigateFallback: "/",
 		},
 		manifest: {
-			name: "Manav Boys Hostel - Meals App",
-			short_name: "Manav Meals",
+			name: "Chatravasa Management",
+			short_name: "Chatravasa",
 			description:
-				"Meals management app for Manav Boys Hostel residents, cook, and owner",
+				"Chatravasa Management system for hostel residents and staff",
 			theme_color: "#4CAF50",
 			background_color: "#ffffff",
 			display: "standalone",
@@ -88,15 +80,17 @@ export default defineNuxtConfig({
 	// Supabase Configuration (placeholder)
 	// TODO: Uncomment after installing @nuxtjs/supabase
 	// ---------------------------------------------------------------------------
-	// supabase: {
-	//   url: process.env.SUPABASE_URL,
-	//   key: process.env.SUPABASE_ANON_KEY,
-	//   redirectOptions: {
-	//     login: '/login',
-	//     callback: '/login/google',
-	//     exclude: ['/', '/login/*'],
-	//   },
-	// },
+	supabase: {
+		url: process.env.SUPABASE_URL,
+		key: process.env.SUPABASE_KEY,
+		types: "@/types/database.types.ts",
+		// types: false,
+		redirectOptions: {
+			login: "/login",
+			callback: "/login/callback",
+			exclude: ["/", "/login/*"],
+		},
+	},
 
 	// ---------------------------------------------------------------------------
 	// Runtime Config (environment variables)
@@ -108,9 +102,9 @@ export default defineNuxtConfig({
 
 		// Public keys (exposed to client via useRuntimeConfig().public)
 		public: {
-			supabaseUrl: "",
-			supabaseAnonKey: "",
-			appName: "Manav Boys Hostel Meals",
+			// supabaseUrl: "https://zsiwszrdlapzfmegeqkn.supabase.co",
+			// supabaseAnonKey: "",
+			// appName: "Chatravasa Management",
 		},
 	},
 
@@ -119,16 +113,41 @@ export default defineNuxtConfig({
 	// ---------------------------------------------------------------------------
 	app: {
 		head: {
-			title: "Manav Boys Hostel - Meal Management",
+			title: "Chatravasa Management",
 			meta: [
 				{
 					name: "description",
-					content: "Meal management system for Manav Boys Hostel residents",
+					content:
+						"Chatravasa Management system for hostel residents and staff",
 				},
 				{ name: "viewport", content: "width=device-width, initial-scale=1" },
 				{ name: "theme-color", content: "#4CAF50" },
 			],
-			link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+			link: [
+				{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+				{
+					rel: "apple-touch-icon",
+					href: "/apple-touch-icon-180x180.png",
+					sizes: "180x180",
+				},
+				{ rel: "manifest", href: "/manifest.webmanifest" },
+			],
+		},
+	},
+
+	fonts: {
+		defaults: {
+			weights: [400],
+			styles: ["normal", "italic"],
+			subsets: [
+				"cyrillic-ext",
+				"cyrillic",
+				"greek-ext",
+				"greek",
+				"vietnamese",
+				"latin-ext",
+				"latin",
+			],
 		},
 	},
 });
