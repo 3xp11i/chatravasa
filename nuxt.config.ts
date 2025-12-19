@@ -77,12 +77,11 @@ export default defineNuxtConfig({
 	},
 
 	// ---------------------------------------------------------------------------
-	// Supabase Configuration (placeholder)
-	// TODO: Uncomment after installing @nuxtjs/supabase
+	// Supabase Configuration
+	// NOTE: Do NOT inline env values here; Netlify will treat them as leaked
+	// secrets. Rely on Netlify environment variables instead.
 	// ---------------------------------------------------------------------------
 	supabase: {
-		url: process.env.SUPABASE_URL,
-		key: process.env.SUPABASE_KEY,
 		types: "@/types/database.types.ts",
 		// types: false,
 		redirectOptions: {
