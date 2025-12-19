@@ -2,8 +2,8 @@ import { computed, ref, watch, type Ref } from 'vue'
 import { usePointerSwipe, useEventListener } from '@vueuse/core'
 
 interface UseSwipeableSidebarOptions {
-    /** Width of the sidebar in pixels */
-    sidebarWidth: number
+    /** Width of the sidebar in pixels or computed ref */
+    sidebarWidth: number | Ref<number>
     /** Distance from left edge to start swipe open (in pixels), default: 25 */
     edgeThreshold?: number
     /** Percentage (0-1) of sidebar width to trigger close/open, default: 0.4 */
@@ -17,15 +17,21 @@ export function useSwipeableSidebar(
     options: UseSwipeableSidebarOptions
 ) {
     const {
-        sidebarWidth,
         edgeThreshold = 25,
         snapThreshold = 0.4,
         isOpen: externalIsOpen,
     } = options
 
+    // Make sidebarWidth reactive
+    const sidebarWidth = computed(() => 
+        typeof options.sidebarWidth === 'number' 
+            ? options.sidebarWidth 
+            : options.sidebarWidth.value
+    )
+
     // Internal state
     const isOpen = externalIsOpen ?? ref(false)
-    const translateX = ref(isOpen.value ? 0 : -sidebarWidth)
+    const translateX = ref(isOpen.value ? 0 : -sidebarWidth.value)
     const isDragging = ref(false)
     const dragStartX = ref(0)
     const initialTranslateX = ref(0)
@@ -33,7 +39,14 @@ export function useSwipeableSidebar(
     // Sync translateX when isOpen changes externally (e.g., button click)
     watch(isOpen, (open) => {
         if (!isDragging.value) {
-            translateX.value = open ? 0 : -sidebarWidth
+            translateX.value = open ? 0 : -sidebarWidth.value
+        }
+    })
+
+    // Update translateX when sidebar width changes (e.g., window resize)
+    watch(sidebarWidth, (newWidth) => {
+        if (!isDragging.value && !isOpen.value) {
+            translateX.value = -newWidth
         }
     })
 
@@ -43,7 +56,7 @@ export function useSwipeableSidebar(
         if (!isOpen.value && e.clientX <= edgeThreshold) {
             isDragging.value = true
             dragStartX.value = e.clientX
-            initialTranslateX.value = -sidebarWidth
+            initialTranslateX.value = -sidebarWidth.value
         }
     })
 
@@ -53,15 +66,15 @@ export function useSwipeableSidebar(
         // Opening gesture: translate from -sidebarWidth towards 0
         const delta = e.clientX - dragStartX.value
         const newTranslate = Math.min(0, initialTranslateX.value + delta)
-        translateX.value = Math.max(-sidebarWidth, newTranslate)
+        translateX.value = Math.max(-sidebarWidth.value, newTranslate)
     })
 
     useEventListener(document, 'pointerup', () => {
         if (!isDragging.value) return
 
         // Snap decision based on how much is visible
-        const visibleAmount = sidebarWidth + translateX.value
-        const visibleRatio = visibleAmount / sidebarWidth
+        const visibleAmount = sidebarWidth.value + translateX.value
+        const visibleRatio = visibleAmount / sidebarWidth.value
 
         if (visibleRatio >= snapThreshold) {
             // Snap open
@@ -69,7 +82,7 @@ export function useSwipeableSidebar(
             isOpen.value = true
         } else {
             // Snap closed
-            translateX.value = -sidebarWidth
+            translateX.value = -sidebarWidth.value
             isOpen.value = false
         }
 
@@ -95,14 +108,14 @@ export function useSwipeableSidebar(
             // When swiping left (negative delta), close the sidebar
             // Clamp between -sidebarWidth and 0
             const newTranslate = initialTranslateX.value + delta
-            translateX.value = Math.max(-sidebarWidth, Math.min(0, newTranslate))
+            translateX.value = Math.max(-sidebarWidth.value, Math.min(0, newTranslate))
         },
         onSwipeEnd() {
             if (!isDragging.value) return
 
             // Snap decision
-            const visibleAmount = sidebarWidth + translateX.value
-            const visibleRatio = visibleAmount / sidebarWidth
+            const visibleAmount = sidebarWidth.value + translateX.value
+            const visibleRatio = visibleAmount / sidebarWidth.value
 
             if (visibleRatio >= (1 - snapThreshold)) {
                 // Snap back open
@@ -110,7 +123,7 @@ export function useSwipeableSidebar(
                 isOpen.value = true
             } else {
                 // Snap closed
-                translateX.value = -sidebarWidth
+                translateX.value = -sidebarWidth.value
                 isOpen.value = false
             }
 
@@ -125,7 +138,7 @@ export function useSwipeableSidebar(
     }
 
     const close = () => {
-        translateX.value = -sidebarWidth
+        translateX.value = -sidebarWidth.value
         isOpen.value = false
     }
 
@@ -145,13 +158,13 @@ export function useSwipeableSidebar(
 
     // Backdrop opacity follows sidebar position (0 when closed, 0.5 when fully open)
     const backdropOpacity = computed(() => {
-        const progress = (sidebarWidth + translateX.value) / sidebarWidth
+        const progress = (sidebarWidth.value + translateX.value) / sidebarWidth.value
         return Math.max(0, Math.min(0.5, progress * 0.5))
     })
 
     // Whether to show backdrop (visible when open or being dragged)
     const showBackdrop = computed(() => {
-        return isOpen.value || isDragging.value || translateX.value > -sidebarWidth
+        return isOpen.value || isDragging.value || translateX.value > -sidebarWidth.value
     })
 
     return {

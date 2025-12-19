@@ -79,10 +79,10 @@ const {
     showBackdrop,
     close,
 } = useSwipeableSidebar(sideBarRef, {
-    sidebarWidth: SIDEBAR_WIDTH.value,
-    edgeThreshold: 25,      // px from left edge to start swipe-to-open
-    snapThreshold: 0.4,     // 40% threshold to snap open/close
-    isOpen: sideBarOpen,    // sync with global state
+    sidebarWidth: SIDEBAR_WIDTH,  // Pass the computed ref, not .value
+    edgeThreshold: 25,            // px from left edge to start swipe-to-open
+    snapThreshold: 0.4,           // 40% threshold to snap open/close
+    isOpen: sideBarOpen,          // sync with global state
 });
 </script>
 

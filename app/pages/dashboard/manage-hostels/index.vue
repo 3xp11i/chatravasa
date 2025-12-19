@@ -15,7 +15,7 @@
     <!-- Error State -->
     <div v-else-if="error" class="error-state">
       <p class="text-red-600">{{ error }}</p>
-      <button @click="fetchHostels" class="btn-secondary mt-4">Try Again</button>
+      <button @click="fetchHostels()" class="btn-secondary mt-4">Try Again</button>
     </div>
 
     <!-- Empty State -->
@@ -105,40 +105,38 @@ import type { Database } from '@/types/database.types';
 
 type Hostel = Database['public']['Tables']['hostels']['Row'];
 
-const hostels = ref<Hostel[]>([]);
-const loading = ref(true);
-const error = ref('');
-const pagination = ref({
+const route = useRoute()
+const navigationStore = useNavigationStore()
+const pageKey = computed(() => route.path)
+const currentPage = ref(navigationStore.getLastPage(pageKey.value));
+const pageSize = 10;
+
+const { data: hostelData, pending: loading, error: fetchError, refresh } = useAsyncData(
+  () => `hostels-page-${currentPage.value}`,
+  () => $fetch('/api/manage-hostel/get-hostels', {
+    method: 'GET',
+    query: {
+      page: currentPage.value,
+      pageSize: pageSize,
+    },
+  }),
+  {
+    watch: [currentPage],
+    getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
+  }
+);
+
+// Explicitly name the refresh function for template usage
+const fetchHostels = refresh;
+
+const hostels = computed(() => hostelData.value?.hostels || []);
+const pagination = computed(() => hostelData.value?.pagination || {
   total: 0,
   page: 1,
   pageSize: 10,
   totalPages: 0,
 });
-
-async function fetchHostels() {
-  loading.value = true;
-  error.value = '';
-  
-  try {
-    const response = await $fetch('/api/manage-hostel/get-hostels', {
-      method: 'GET',
-      query: {
-        page: pagination.value.page,
-        pageSize: pagination.value.pageSize,
-      },
-    });
-
-    if (response.success) {
-      hostels.value = response.hostels;
-      pagination.value = response.pagination;
-    }
-  } catch (err: any) {
-    console.error('Error fetching hostels:', err);
-    error.value = err.data?.statusMessage || 'Failed to load hostels';
-  } finally {
-    loading.value = false;
-  }
-}
+const error = computed(() => fetchError.value ? 'Failed to load hostels' : '');
 
 async function deleteHostel(hostelId: number) {
   if (!confirm('Are you sure you want to delete this hostel?')) {
@@ -162,13 +160,10 @@ async function deleteHostel(hostelId: number) {
 }
 
 function changePage(newPage: number) {
-  pagination.value.page = newPage;
-  fetchHostels();
+  currentPage.value = newPage;
+  navigationStore.saveLastPage(pageKey.value, newPage);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-onMounted(() => {
-  fetchHostels();
-});
 </script>
 
 <style scoped>

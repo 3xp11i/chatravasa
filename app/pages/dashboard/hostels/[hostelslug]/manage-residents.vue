@@ -129,56 +129,25 @@ type Resident = {
 
 const route = useRoute()
 const hostelSlug = route.params.hostelslug as string
+const pageSize = 10
+const navigationStore = useNavigationStore()
+const pageKey = computed(() => route.path)
 
 const searchTerm = ref('')
-const currentPage = ref(1)
-const pageSize = 10
+const currentPage = ref(navigationStore.getLastPage(pageKey.value))
 
 const { data: apiResponse, pending, error, refresh } = useAsyncData(
-    () => `residents-${hostelSlug}-page-${currentPage.value}-search-${searchTerm.value}`,
-    async () => {
-        const term = searchTerm.value.trim().toLowerCase()
-        
-        // If searching, fetch all residents and filter server-side
-        if (term) {
-            const response = await $fetch('/api/manage-resident/get-residents', { 
-                query: { 
-                    hostel_slug: hostelSlug,
-                    limit: 1000 // Fetch all for search
-                } 
-            })
-            
-            const filtered = response.residents.filter((r: Resident) => {
-                const fullName = `${r.first_name} ${r.last_name}`.toLowerCase()
-                return (
-                    fullName.includes(term) ||
-                    r.phone_number.toLowerCase().includes(term) ||
-                    (r.room || '').toLowerCase().includes(term)
-                )
-            })
-            
-            return {
-                residents: filtered,
-                total: response.total,
-                limit: response.limit,
-                offset: 0
-            }
+    () => `residents-${hostelSlug}-page-${currentPage.value}`,
+    () => $fetch('/api/manage-resident/get-residents', {
+        query: {
+            hostel_slug: hostelSlug,
+            limit: pageSize,
+            offset: (currentPage.value - 1) * pageSize
         }
-        
-        // Normal pagination
-        return $fetch('/api/manage-resident/get-residents', { 
-            query: { 
-                hostel_slug: hostelSlug,
-                limit: pageSize,
-                offset: (currentPage.value - 1) * pageSize
-            } 
-        })
-    },
+    }),
     {
-        watch: [currentPage, searchTerm],
-        getCachedData: (key) => {
-            return useNuxtApp().payload.data[key] || useNuxtApp().static.data[key]
-        }
+        watch: [currentPage],
+        getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
     }
 )
 
@@ -186,11 +155,26 @@ const residents = computed(() => apiResponse.value?.residents || [])
 const totalResidents = computed(() => apiResponse.value?.total || 0)
 const totalPages = computed(() => Math.ceil(totalResidents.value / pageSize))
 
-const filteredResidents = computed(() => residents.value)
+const filteredResidents = computed(() => {
+    if (!searchTerm.value.trim()) {
+        return residents.value
+    }
+    
+    const term = searchTerm.value.trim().toLowerCase()
+    return residents.value.filter((r: Resident) => {
+        const fullName = `${r.first_name} ${r.last_name}`.toLowerCase()
+        return (
+            fullName.includes(term) ||
+            r.phone_number.toLowerCase().includes(term) ||
+            (r.room || '').toLowerCase().includes(term)
+        )
+    })
+})
 
 const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page
+        navigationStore.saveLastPage(pageKey.value, page)
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 }

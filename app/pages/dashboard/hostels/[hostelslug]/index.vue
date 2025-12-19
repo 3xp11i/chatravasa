@@ -1,7 +1,10 @@
 <template>
   <div class="mt-5 flex flex-col justify-center items-center">
 
-    <h1 class="text-center">{{ hostelName }}</h1>
+    <h1 class="text-center">
+      <span v-if="loading && !hostelName" class="inline-block animate-pulse rounded text-sm ">Loading...</span>
+      <span v-else>{{ hostelName }}</span>
+    </h1>
     <NuxtLink class="greenBtn active:text-white">Edit Hostel</NuxtLink>
 
 
@@ -27,26 +30,19 @@ import type { Database } from '@/types/database.types';
 type Hostel = Database['public']['Tables']['hostels']['Row'];
 
 const route = useRoute();
-const hostelSlug = computed(() => String(route.params['hostelslug'] ?? ''));
+const hostelSlug = route.params.hostelslug as string;
 
-// Use useAsyncData for automatic caching and deduplication
-const { data: hostelData, error, pending: loading } = await useAsyncData(
-  `hostel-${hostelSlug.value}`, // Unique key for caching
+const { data: hostelData, error, pending: loading } = useAsyncData(
+  `hostel-${hostelSlug}`,
   () => $fetch<{ success: boolean; hostel: Hostel }>(`/api/manage-hostel/get-hostel-by-slug`, {
-    method: 'GET',
-    query: { slug: hostelSlug.value }
+    query: { slug: hostelSlug }
   }),
   {
-    // Remove the duplicate 'key' option
-    lazy: false,
-    server: true,
-    getCachedData: (key) => {
-      return useNuxtData(key).data.value;
-    }
+    getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
   }
 );
 
-const hostelName = computed(() => hostelData.value?.hostel?.hostel_name ?? '');
+const hostelName = computed(() => (hostelData.value as any)?.hostel?.hostel_name ?? '');
 
 </script>
 

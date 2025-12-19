@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
 	compatibilityDate: "2025-12-18",
 	devtools: { enabled: false },
+	ssr: false,
 
 	future: {
 		compatibilityVersion: 4,
@@ -13,6 +14,7 @@ export default defineNuxtConfig({
 		"@nuxtjs/supabase",
 		"@nuxt/fonts",
 		"@vueuse/nuxt",
+		"@pinia/nuxt",
 	],
 
 	vite: {
@@ -28,11 +30,41 @@ export default defineNuxtConfig({
 			"maskable-icon-512x512.png",
 		],
 		workbox: {
-			globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
-			navigateFallback: null,
+			globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
+			navigateFallback: "/",
+			navigateFallbackDenylist: [/^\/api\//],
+			runtimeCaching: [
+				{
+					urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+					handler: "NetworkFirst",
+					options: {
+						cacheName: "supabase-api-cache",
+						expiration: {
+							maxEntries: 50,
+							maxAgeSeconds: 5 * 60, // 5 minutes
+						},
+						cacheableResponse: {
+							statuses: [0, 200],
+						},
+					},
+				},
+				{
+					urlPattern: /^\/api\/.*/i,
+					handler: "NetworkFirst",
+					options: {
+						cacheName: "api-cache",
+						expiration: {
+							maxEntries: 50,
+							maxAgeSeconds: 5 * 60, // 5 minutes
+						},
+						networkTimeoutSeconds: 10,
+					},
+				},
+			],
 		},
 		client: {
 			installPrompt: true,
+			periodicSyncForUpdates: 3600, // Check for updates every hour
 		},
 		devOptions: {
 			enabled: true,

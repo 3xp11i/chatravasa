@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
 		.select("id, first_name, last_name, phone_number, room, joining_date, father_name, family_phone_number, avatar, created_at")
 		.eq("hostel_id", hostel.id)
 		.order("created_at", { ascending: false })
+		.order("id", { ascending: true })
 		.range(pageOffset, pageOffset + pageLimit - 1);
 
 	if (residentsError) {
