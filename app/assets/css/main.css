@@ -204,7 +204,7 @@ button.tapCircle:active{
 /* ---------------------------------------------------------------------------
    Form Elements - Mobile First (min 16px to prevent iOS zoom)
 --------------------------------------------------------------------------- */
-input, select, textarea {
+input:not([type="checkbox"]), select, textarea {
   font-size: 1rem; /* Prevents iOS zoom */
   padding: clamp(0.625rem, 2vw, 0.75rem) clamp(0.75rem, 2.5vw, 1rem);
   border: 1px solid #ddd;

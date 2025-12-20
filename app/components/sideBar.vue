@@ -34,7 +34,7 @@
 
             <div class="bottomSection flex flex-col gap-4 mt-auto mb-8 px-4">
                 <NuxtLink to="/contact" @click="close">Contact Us</NuxtLink>
-                <button class="bg-red-500 text-white" @click="close">Logout</button>
+                <button class="bg-red-500 text-white" @click="logout">Logout</button>
             </div>
         </div>
     </Teleport>
@@ -84,6 +84,18 @@ const {
     snapThreshold: 0.4,           // 40% threshold to snap open/close
     isOpen: sideBarOpen,          // sync with global state
 });
+
+
+const logout = async () => {
+    const supabase = useSupabaseClient();
+    await supabase.auth.signOut();
+    close();
+    // Optionally redirect to home or login page
+    navigateTo('/');
+};
+
+
+
 </script>
 
 <style>
@@ -93,7 +105,7 @@ const {
     position: fixed;
     left: 0;
     top: 0;
-    background-color: var(--color-secondary);
+    background-color: var(--color-emerald-600);
     height: 100vh;
     width: 50%;
     z-index: 1000;

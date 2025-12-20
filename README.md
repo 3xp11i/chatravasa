@@ -51,10 +51,9 @@ For each Resident, they need to give -
 **Manage Meals Page**
 
 - Admin can add meals, which will require these data sets:
-  - Meal Title
-  - Meal Timing
+  - Meal Title (Breakfast, Dinner, etc.)
+  - Meal Timing (8:00 AM, 9:00 PM)
   - Meal Update Deadline (number of hours before the meal uptil residents can update their meal status for that meal)
-
 
 
 ## Main features
@@ -84,6 +83,10 @@ This will be for Residents to view the weekly meals, and tell in advance if they
 
 - Choose Yes/No for today's, tomorrow's and weekly meals.
 - View the Weekly meals plan created by the admin.
+
+
+
+
 
 ![Meals Page for Residents](app\assets\images\rs_meals_page.png)
 

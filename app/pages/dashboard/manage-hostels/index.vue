@@ -67,7 +67,7 @@
 
           <div class="card-footer">
             <NuxtLink :to="`/dashboard/hostels/${hostel.hostel_slug}`" class="btn-view">
-              View Details
+              Open Hostel Page
             </NuxtLink>
             <button @click="deleteHostel(hostel.id)" class="btn-delete">
               Delete
