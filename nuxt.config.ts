@@ -74,12 +74,12 @@ export default defineNuxtConfig({
 			navigateFallback: "/",
 		},
 		manifest: {
-			name: "Chatravasa Management",
+			name: "Chatravasa - Students ka Ghar, Digitally Managed",
 			short_name: "Chatravasa",
 			description:
 				"Chatravasa Management system for hostel residents and staff",
 			theme_color: "#4CAF50",
-			background_color: "#ffffff",
+			background_color: "#FFEE91",
 			display: "standalone",
 			start_url: "/",
 			scope: "/",
@@ -123,7 +123,7 @@ export default defineNuxtConfig({
 		redirectOptions: {
 			login: "/login",
 			callback: "/login/callback",
-			exclude: ["/", "/login/*"],
+			exclude: ["/", "/login/*", "/contact"],
 		},
 	},
 

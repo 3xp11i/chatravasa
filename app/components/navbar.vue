@@ -19,6 +19,11 @@
                       d="M3 12h18M3 18h18M3 6h18" />
             </svg>
         </button>
+        <!-- Show logo on root page -->
+        <img v-else-if="isRootPage" 
+             src="/pwa-192x192.png" 
+             alt="Chatravasa Logo" 
+             class="w-12 h-12 object-contain" />
         <!-- Spacer when sidebar button is hidden to maintain layout -->
         <div v-else class="w-12"></div>
 
@@ -75,6 +80,11 @@ const isOnResidentHome = computed(() => {
 // Only show sidebar button on dashboard and resident pages
 const showSidebarButton = computed(() => {
     return route.path.startsWith('/dashboard') || route.path.startsWith('/resident');
+});
+
+// Check if current page is root
+const isRootPage = computed(() => {
+    return route.path === '/';
 });
 
 </script>
