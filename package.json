@@ -7,7 +7,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "generate-pwa-assets": "pwa-assets-generator"
   },
   "dependencies": {
     "@nuxt/fonts": "^0.12.1",
@@ -22,5 +23,8 @@
     "vue": "^3.5.25",
     "vue-final-modal": "^4.5.5",
     "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.2"
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <VueFinalModal class="flex items-center justify-center" @click-outside="!uploading && emit('close')">
+  <VueFinalModal class="flex items-center justify-center" :click-to-close="false">
     <div class="card bg-white rounded-lg shadow-lg p-6 w-[92vw] mx-4 max-h-[90vh] overflow-y-auto">
       <!-- Header -->
       <h3 class="text-xl font-bold mb-4">Confirm Avatar</h3>

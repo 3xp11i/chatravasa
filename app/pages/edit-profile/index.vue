@@ -1,19 +1,31 @@
 <template>
   <div class="min-h-screen bg-background text-text px-4 py-8">
     <div class="mx-auto">
-      <!-- Loading State -->
-      <div v-if="loading" class="space-y-6">
-        <div class="card">
-          <div class="h-32 bg-gray-200 rounded animate-shimmer mb-6"></div>
-          <div class="space-y-4">
-            <div class="h-6 bg-gray-200 rounded animate-shimmer"></div>
-            <div class="h-6 bg-gray-200 rounded animate-shimmer w-3/4"></div>
+      <template v-if="authChecking">
+        <div class="min-h-[70vh] flex items-center justify-center">
+          <div class="flex flex-col items-center gap-3 text-text">
+            <div class="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
+            <p class="text-sm font-medium">Checking your session...</p>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- Loading State -->
+      <template v-else-if="loading">
+        <div class="space-y-6">
+          <div class="card">
+            <div class="h-32 bg-gray-200 rounded animate-shimmer mb-6"></div>
+            <div class="space-y-4">
+              <div class="h-6 bg-gray-200 rounded animate-shimmer"></div>
+              <div class="h-6 bg-gray-200 rounded animate-shimmer w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      </template>
 
       <!-- Main Content -->
-      <div v-else-if="userProfile" class="space-y-6">
+      <template v-else-if="userProfile">
+        <div class="space-y-6">
         <!-- Page Title -->
         <div>
           <h1 class="text-3xl font-bold mb-2">Edit Profile</h1>
@@ -188,21 +200,34 @@
             You can update your profile picture by clicking the camera icon above. Phone number updates will be handled separately for security reasons.
           </p>
         </div>
-      </div>
+        </div>
+      </template>
 
       <!-- Error State -->
-      <div v-else class="card bg-red-50 border border-red-200">
-        <p class="text-red-800 font-medium mb-4">{{ error || 'Unable to load profile information.' }}</p>
-        <button
-          type="button"
-          class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
-          @click="retryFetch"
-          :disabled="loading"
-        >
-          {{ loading ? 'Retrying...' : 'Retry' }}
-        </button>
-        <p class="text-red-700 text-xs mt-2">Check the browser console (F12) for detailed error information.</p>
-      </div>
+      <template v-else-if="error">
+        <div class="card bg-red-50 border border-red-200">
+          <p class="text-red-800 font-medium mb-4">{{ error }}</p>
+          <button
+            type="button"
+            class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+            @click="retryFetch"
+            :disabled="loading"
+          >
+            {{ loading ? 'Retrying...' : 'Retry' }}
+          </button>
+          <p class="text-red-700 text-xs mt-2">Check the browser console (F12) for detailed error information.</p>
+        </div>
+      </template>
+
+      <!-- Fallback pending state (no error, no profile) -->
+      <template v-else>
+        <div class="min-h-[50vh] flex items-center justify-center">
+          <div class="flex flex-col items-center gap-3 text-text">
+            <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+            <p class="text-sm font-medium">Loading your profile...</p>
+          </div>
+        </div>
+      </template>
     </div>
 
     <ModalsContainer />
@@ -222,11 +247,14 @@ definePageMeta({
 })
 
 const { userProfile, isAdmin, loading, error, updateProfile, uploadAvatar, removeAvatar } = useCurrentUser()
+const supabase = useSupabaseClient<Database>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const submitting = ref(false)
 const uploadingAvatar = ref(false)
 const removingAvatar = ref(false)
+const processingAvatar = ref(false)
+const authChecking = ref(true)
 const successMessage = ref('')
 const errorMessage = ref('')
 const previewUrl = ref('')
@@ -276,6 +304,31 @@ onMounted(() => {
   }, { immediate: true })
 
   onUnmounted(() => stopWatching())
+})
+
+onMounted(async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session) {
+      authChecking.value = false
+      navigateTo('/')
+      return
+    }
+
+    // Ensure profile is loaded
+    if (!userProfile.value) {
+      const { fetchUserProfile } = useCurrentUser()
+      await fetchUserProfile()
+    }
+  } catch (err) {
+    console.error('Auth check error:', err)
+    authChecking.value = false
+    navigateTo('/')
+    return
+  }
+
+  authChecking.value = false
 })
 
 const getInitials = () => {
@@ -368,12 +421,14 @@ const handleImageSelect = async (event: Event) => {
 
   if (!file) return
 
+  processingAvatar.value = true
   errorMessage.value = ''
   successMessage.value = ''
 
   // Validate file size
   if (file.size > MAX_FILE_SIZE) {
     errorMessage.value = `File size must be less than 5MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+    processingAvatar.value = false
     return
   }
 
@@ -381,6 +436,7 @@ const handleImageSelect = async (event: Event) => {
   const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
   if (!validTypes.includes(file.type)) {
     errorMessage.value = 'Please upload a valid image file (JPEG, PNG, GIF, or WebP)'
+    processingAvatar.value = false
     return
   }
 
@@ -418,12 +474,14 @@ const handleImageSelect = async (event: Event) => {
     })
     modalInstance = { close: closePreviewModal }
     openPreviewModal()
+    processingAvatar.value = false
   } catch (err: any) {
     console.error('Image processing error:', err)
     errorMessage.value = err.message || 'Failed to process image. Please try another file.'
     if (fileInput.value) {
       fileInput.value.value = ''
     }
+    processingAvatar.value = false
   }
 }
 
