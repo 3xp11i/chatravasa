@@ -57,6 +57,7 @@
           </div>
 
           <p v-if="message" class="text-green-700 text-sm text-center">{{ message }}</p>
+          <p v-if="redirecting" class="text-primary text-sm text-center font-medium">Redirecting to your dashboard...</p>
           <p v-if="errorMessage" class="text-red-600 text-sm text-center">{{ errorMessage }}</p>
         </form>
       </div>
@@ -76,6 +77,7 @@ const phone = ref('');
 const otp = ref('');
 const step = ref<'request' | 'verify'>('request');
 const loading = ref(false);
+const redirecting = ref(false);
 const message = ref('');
 const errorMessage = ref('');
 const resendTimer = ref(0);
@@ -165,6 +167,7 @@ async function verifyOtp() {
   }
 
   message.value = 'Signed in successfully!';
+  redirecting.value = true;
 
   setTimeout(() => {
     navigateTo('/resident');

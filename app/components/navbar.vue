@@ -2,7 +2,9 @@
 
     <nav class="flex justify-between items-center p-2">
 
-        <button class="tapCircle"
+        <!-- Only show hamburger menu on dashboard and resident pages -->
+        <button v-if="showSidebarButton" 
+                class="tapCircle"
                 @click="toggleSidebar">
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="32"
@@ -17,6 +19,8 @@
                       d="M3 12h18M3 18h18M3 6h18" />
             </svg>
         </button>
+        <!-- Spacer when sidebar button is hidden to maintain layout -->
+        <div v-else class="w-12"></div>
 
         <!-- Show login button for non-authenticated users -->
         <NuxtLink to="/login" v-if="!authUser"
@@ -66,6 +70,11 @@ const hostelHomeUrl = computed(() => {
 
 const isOnResidentHome = computed(() => {
     return route.path === '/resident';
+});
+
+// Only show sidebar button on dashboard and resident pages
+const showSidebarButton = computed(() => {
+    return route.path.startsWith('/dashboard') || route.path.startsWith('/resident');
 });
 
 </script>
