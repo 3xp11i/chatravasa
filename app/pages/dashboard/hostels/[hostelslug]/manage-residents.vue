@@ -137,7 +137,7 @@ const searchTerm = ref('')
 const currentPage = ref(navigationStore.getLastPage(pageKey.value))
 
 const { data: apiResponse, pending, error, refresh } = useAsyncData(
-    () => `residents-${hostelSlug}-page-${currentPage.value}`,
+    `residents-${hostelSlug}-page-${currentPage.value}`,
     () => $fetch('/api/manage-resident/get-residents', {
         query: {
             hostel_slug: hostelSlug,

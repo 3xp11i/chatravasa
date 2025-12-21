@@ -45,10 +45,17 @@ export default defineEventHandler(async (event) => {
 	// Get paginated residents
 	const { data: residents, error: residentsError } = await client
 		.from("residents")
-		.select("id, first_name, last_name, phone_number, room, joining_date, father_name, family_phone_number, avatar, created_at")
+		.select(`
+			id,
+			room,
+			joining_date,
+			guardian_name,
+			family_phone_number,
+			created_at,
+			profiles!inner(first_name, last_name, phone, avatar)
+		`)
 		.eq("hostel_id", hostel.id)
 		.order("created_at", { ascending: false })
-		.order("id", { ascending: true })
 		.range(pageOffset, pageOffset + pageLimit - 1);
 
 	if (residentsError) {
@@ -56,7 +63,17 @@ export default defineEventHandler(async (event) => {
 	}
 
 	return {
-		residents: residents || [],
+		residents: residents?.map(r => ({
+			id: r.id,
+			first_name: r.profiles.first_name,
+			last_name: r.profiles.last_name,
+			phone_number: r.profiles.phone,
+			avatar: r.profiles.avatar,
+			room: r.room,
+			joining_date: r.joining_date,
+			father_name: r.guardian_name,
+			family_phone_number: r.family_phone_number,
+		})) || [],
 		total: count || 0,
 		limit: pageLimit,
 		offset: pageOffset,
