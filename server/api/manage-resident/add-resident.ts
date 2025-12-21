@@ -13,21 +13,22 @@ export default defineEventHandler(async (event) => {
 
 		// Parse the request body
 		const body = await readBody(event);
-		const { first_name, last_name, phone_number, joining_date, hostel_slug, family_phone_number, father_name, room } = body;
+		const { name, phone, room, joining_date, guardian_name, family_phone_number, hostel_slug } = body;
 
 		// Validate required fields
-		if (!first_name || !last_name || !phone_number || !hostel_slug) {
+		if (!name || !phone || !room || !hostel_slug) {
 			throw createError({
 				statusCode: 400,
-				statusMessage: "Missing required fields: first_name, last_name, phone_number, hostel_slug",
+				statusMessage: "Missing required fields: name, phone, room, hostel_slug",
 			});
 		}
 
-		// Validate phone number format (10 digits)
-		if (!/^\d{10}$/.test(phone_number)) {
+		// Validate phone number format (E.164 or 10 digits)
+		const isValidPhone = /^\+\d{1,15}$/.test(phone) || /^\d{10}$/.test(phone);
+		if (!isValidPhone) {
 			throw createError({
 				statusCode: 400,
-				statusMessage: "Phone number must be 10 digits",
+				statusMessage: "Invalid phone number format. Use E.164 format (e.g., +919876543210) or 10 digits",
 			});
 		}
 
@@ -53,13 +54,49 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 
-		// Check if phone number already exists in this hostel
-		const { data: existingResident } = await client
-			.from("residents")
+		// Normalize phone number to E.164 format if needed
+		let normalizedPhone = phone;
+		if (/^\d{10}$/.test(phone)) {
+			normalizedPhone = "+91" + phone; // Assuming Indian phone numbers
+		}
+
+		// Check if this phone already exists in resident_invites for this hostel
+		const { data: existingInvite } = await client
+			.from("resident_invites")
 			.select("id")
-			.eq("phone_number", phone_number)
+			.eq("phone", normalizedPhone)
 			.eq("hostel_id", hostel.id)
 			.single();
+
+		if (existingInvite) {
+			throw createError({
+				statusCode: 409,
+				statusMessage: "This resident has already been added to this hostel",
+			});
+		}
+
+		// Check if resident already exists (already logged in)
+		const { data: existingResident } = await client
+			.from("residents")
+			.select("id, hostel_id")
+			.eq("hostel_id", hostel.id)
+			.then(async (result) => {
+				if (result.error) return { data: null, error: result.error };
+				
+				// For each resident, check if their phone matches in profiles
+				for (const resident of result.data || []) {
+					const { data: profile } = await client
+						.from("profiles")
+						.select("phone")
+						.eq("id", resident.id)
+						.single();
+					
+					if (profile?.phone === normalizedPhone) {
+						return { data: resident, error: null };
+					}
+				}
+				return { data: null, error: null };
+			});
 
 		if (existingResident) {
 			throw createError({
@@ -68,30 +105,23 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 
-		// Create a user account for the resident
-		// Note: You'll need to adjust this based on your authentication setup
-		// For now, we'll generate a unique ID for the resident
-		const residentId = crypto.randomUUID();
-
-		// Insert the new resident
-		const { data: newResident, error: insertError } = await client
-			.from("residents")
+		// Insert into resident_invites table
+		const { data: newInvite, error: insertError } = await client
+			.from("resident_invites")
 			.insert({
-				id: residentId,
-				first_name,
-				last_name,
-				phone_number,
+				name,
+				phone: normalizedPhone,
+				room,
 				hostel_id: hostel.id,
 				joining_date: joining_date || null,
+				guardian_name: guardian_name || null,
 				family_phone_number: family_phone_number || null,
-				father_name: father_name || null,
-				room: room || "Not Assigned",
 			})
 			.select()
 			.single();
 
 		if (insertError) {
-			console.error("Error inserting resident:", insertError);
+			console.error("Error inserting resident invite:", insertError);
 			throw createError({
 				statusCode: 500,
 				statusMessage: "Failed to add resident",
@@ -101,11 +131,11 @@ export default defineEventHandler(async (event) => {
 		return {
 			success: true,
 			message: "Resident added successfully",
-			data: newResident,
+			data: newInvite,
 		};
 	} catch (error: any) {
 		console.error("Error in add-resident API:", error);
-		
+
 		// If it's already a createError, re-throw it
 		if (error.statusCode) {
 			throw error;

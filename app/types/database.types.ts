@@ -16,28 +16,16 @@ export type Database = {
     Tables: {
       admins: {
         Row: {
-          avatar: string | null
           created_at: string
-          first_name: string
           id: string
-          last_name: string
-          phone: string
         }
         Insert: {
-          avatar?: string | null
           created_at?: string
-          first_name: string
           id: string
-          last_name: string
-          phone: string
         }
         Update: {
-          avatar?: string | null
           created_at?: string
-          first_name?: string
           id?: string
-          last_name?: string
-          phone?: string
         }
         Relationships: [
           {
@@ -190,6 +178,50 @@ export type Database = {
         }
         Relationships: []
       }
+      resident_invites: {
+        Row: {
+          created_at: string
+          family_phone_number: string | null
+          guardian_name: string | null
+          hostel_id: string
+          id: number
+          joining_date: string | null
+          name: string
+          phone: string
+          room: string
+        }
+        Insert: {
+          created_at?: string
+          family_phone_number?: string | null
+          guardian_name?: string | null
+          hostel_id: string
+          id?: number
+          joining_date?: string | null
+          name: string
+          phone: string
+          room: string
+        }
+        Update: {
+          created_at?: string
+          family_phone_number?: string | null
+          guardian_name?: string | null
+          hostel_id?: string
+          id?: number
+          joining_date?: string | null
+          name?: string
+          phone?: string
+          room?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resident_invites_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resident_meal_overrides: {
         Row: {
           created_at: string
@@ -237,42 +269,30 @@ export type Database = {
       }
       residents: {
         Row: {
-          avatar: string | null
           created_at: string
           family_phone_number: string | null
-          father_name: string | null
-          first_name: string
+          guardian_name: string | null
           hostel_id: string
           id: string
           joining_date: string | null
-          last_name: string
-          phone_number: string
           room: string
         }
         Insert: {
-          avatar?: string | null
           created_at?: string
           family_phone_number?: string | null
-          father_name?: string | null
-          first_name: string
+          guardian_name?: string | null
           hostel_id: string
           id: string
           joining_date?: string | null
-          last_name: string
-          phone_number: string
           room: string
         }
         Update: {
-          avatar?: string | null
           created_at?: string
           family_phone_number?: string | null
-          father_name?: string | null
-          first_name?: string
+          guardian_name?: string | null
           hostel_id?: string
           id?: string
           joining_date?: string | null
-          last_name?: string
-          phone_number?: string
           room?: string
         }
         Relationships: [
@@ -283,9 +303,16 @@ export type Database = {
             referencedRelation: "hostels"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "residents_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      residents_info: {
+      residents_metadata: {
         Row: {
           created_at: string
           in_room: boolean

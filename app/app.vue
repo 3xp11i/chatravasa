@@ -14,4 +14,7 @@
 
 <script setup lang="ts">
 
+console.log(useSupabaseUser().value);
+
+
 </script>

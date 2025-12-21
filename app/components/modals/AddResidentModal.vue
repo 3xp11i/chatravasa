@@ -23,35 +23,26 @@
                 </button>
             </div>
 
+            <!-- Info Message -->
+            <div class="mb-4 p-3 rounded-md bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-sm">
+                The resident will be added to your hostel. They can login using their phone number when ready.
+            </div>
+
             <!-- Form -->
             <form @submit.prevent="handleSubmit">
                 <div class="space-y-4">
-                    <!-- First Name -->
+                    <!-- Full Name -->
                     <div>
-                        <label for="firstName"
+                        <label for="name"
                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            First Name <span class="text-red-500">*</span>
+                            Full Name <span class="text-red-500">*</span>
                         </label>
-                        <input id="firstName"
-                               v-model="formData.first_name"
+                        <input id="name"
+                               v-model="formData.name"
                                type="text"
                                required
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                               placeholder="Enter first name" />
-                    </div>
-
-                    <!-- Last Name -->
-                    <div>
-                        <label for="lastName"
-                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Last Name <span class="text-red-500">*</span>
-                        </label>
-                        <input id="lastName"
-                               v-model="formData.last_name"
-                               type="text"
-                               required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                               placeholder="Enter last name" />
+                               placeholder="Enter resident's full name" />
                     </div>
 
                     <!-- Phone Number -->
@@ -61,20 +52,19 @@
                             Phone Number <span class="text-red-500">*</span>
                         </label>
                         <input id="phoneNumber"
-                               v-model="formData.phone_number"
+                               v-model="formData.phone"
                                type="tel"
                                required
-                               pattern="[0-9]{10}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                               placeholder="Enter 10-digit phone number" />
+                               placeholder="e.g. +919876543210 or 9876543210"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use E.164 format (+919876543210) or 10 digits</p>
                     </div>
-
 
                     <!-- Room -->
                     <div>
                         <label for="room"
                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Room
+                            Room <span class="text-red-500">*</span>
                         </label>
                         <input id="room"
                                v-model="formData.room"
@@ -88,7 +78,7 @@
                     <div>
                         <label for="joiningDate"
                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Joining Date (Optional)
+                            Joining Date
                         </label>
                         <input id="joiningDate"
                                v-model="formData.joining_date"
@@ -96,32 +86,30 @@
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                     </div>
 
-                    <!-- Father's Name -->
+                    <!-- Guardian Name -->
                     <div>
-                        <label for="fatherName"
+                        <label for="guardianName"
                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Father's Name (Optional)
+                            Guardian Name
                         </label>
-                        <input id="fatherName"
-                               v-model="formData.father_name"
+                        <input id="guardianName"
+                               v-model="formData.guardian_name"
                                type="text"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                               placeholder="Enter father's name" />
-
+                               placeholder="Enter guardian's name" />
                     </div>
 
                     <!-- Family Phone Number -->
                     <div>
                         <label for="familyPhoneNumber"
                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Family Phone Number (Optional)
+                            Family Phone Number
                         </label>
                         <input id="familyPhoneNumber"
                                v-model="formData.family_phone_number"
                                type="tel"
-                               pattern="[0-9]{10}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                               placeholder="Enter 10-digit family phone number" />
+                               placeholder="e.g. +919876543210 or 9876543210"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                     </div>
 
                 </div>
@@ -164,13 +152,12 @@ const route = useRoute()
 const hostelSlug = route.params.hostelslug as string
 
 const formData = ref({
-    first_name: '',
-    last_name: '',
-    phone_number: '',
+    name: '',
+    phone: '',
+    room: '',
     joining_date: '',
-    father_name: '',
-    family_phone_number: '',
-    room: ''
+    guardian_name: '',
+    family_phone_number: ''
 })
 
 const isSubmitting = ref(false)
@@ -185,13 +172,12 @@ const handleSubmit = async () => {
         const response = await $fetch('/api/manage-resident/add-resident', {
             method: 'POST',
             body: {
-                first_name: formData.value.first_name,
-                last_name: formData.value.last_name,
-                phone_number: formData.value.phone_number,
+                name: formData.value.name,
+                phone: formData.value.phone,
+                room: formData.value.room,
                 joining_date: formData.value.joining_date || null,
-                father_name: formData.value.father_name || null,
+                guardian_name: formData.value.guardian_name || null,
                 family_phone_number: formData.value.family_phone_number || null,
-                room: formData.value.room || 'Not Assigned',
                 hostel_slug: hostelSlug
             }
         })
@@ -203,13 +189,12 @@ const handleSubmit = async () => {
 
         // Reset form
         formData.value = {
-            first_name: '',
-            last_name: '',
-            phone_number: '',
+            name: '',
+            phone: '',
+            room: '',
             joining_date: '',
-            father_name: '',
-            family_phone_number: '',
-            room: ''
+            guardian_name: '',
+            family_phone_number: ''
         }
 
         // Close modal after 1.5 seconds

@@ -18,15 +18,28 @@
             </svg>
         </button>
 
-        <NuxtLink to="/login" v-if="!useSupabaseUser().value"
+        <!-- Show login button for non-authenticated users -->
+        <NuxtLink to="/login" v-if="!authUser"
                   class="greenBtn justify-self-end">Login</NuxtLink>
 
+        <!-- Show Dashboard/Home link for authenticated users (hide if already on that page) -->
+        <NuxtLink v-if="authUser && isAdmin && !route.path.startsWith('/dashboard')" to="/dashboard"
+                  class="greenBtn justify-self-end">Dashboard</NuxtLink>
+        <NuxtLink v-if="authUser && isResident && !route.path.startsWith('/resident')" to="/resident"
+                  class="greenBtn justify-self-end">Home</NuxtLink>
 
-        <!-- A Navlink which gets back user to /dashboard/hostels/hostel-slug if they are inside any page of the hostel like /dashboard/hostels/hostel-slug/manage-meals, etc. It contains the text "Hostel Home" if the user is inside any hostel page, if the user is already on the hostel home, that is /dashboard/hostels/hostel-slug, then the text will be Dashboard and it will direct them to the /dashboard instead -->
-        <NuxtLink v-if="useSupabaseUser().value && route.path.startsWith('/dashboard/hostels/')" 
+        <!-- Admin Navigation: Show when admin is in dashboard/hostels pages -->
+        <NuxtLink v-if="authUser && isAdmin && route.path.startsWith('/dashboard/hostels/')" 
                   :to="isOnHostelHome ? '/dashboard' : hostelHomeUrl"
                   class="greenBtn">
             {{ isOnHostelHome ? 'Dashboard' : 'Hostel Home' }}
+        </NuxtLink>
+
+        <!-- Resident Navigation: Show when resident is in resident pages -->
+        <NuxtLink v-if="authUser && isResident && route.path.startsWith('/resident/')"
+                  :to="isOnResidentHome ? '/resident' : '/resident'"
+                  class="greenBtn">
+            Open Homepage
         </NuxtLink>
 
     </nav>
@@ -37,17 +50,23 @@
 <script lang="ts" setup>
 
 const { toggleSidebar } = useSidebar();
+const { isAdmin, isResident } = useCurrentUser();
+const authUser = useSupabaseUser();
+const route = useRoute();
 
-const route = useRoute()
 const isOnHostelHome = computed(() => {
-    const hostelSlug = route.params.hostelslug as string | undefined
-    return hostelSlug && route.path === `/dashboard/hostels/${hostelSlug}`
-})
-const hostelHomeUrl = computed(() => {
-    const hostelSlug = route.params.hostelslug as string | undefined
-    return hostelSlug ? `/dashboard/hostels/${hostelSlug}` : '/dashboard'
-})
+    const hostelSlug = route.params.hostelslug as string | undefined;
+    return hostelSlug && route.path === `/dashboard/hostels/${hostelSlug}`;
+});
 
+const hostelHomeUrl = computed(() => {
+    const hostelSlug = route.params.hostelslug as string | undefined;
+    return hostelSlug ? `/dashboard/hostels/${hostelSlug}` : '/dashboard';
+});
+
+const isOnResidentHome = computed(() => {
+    return route.path === '/resident';
+});
 
 </script>
 
