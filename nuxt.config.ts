@@ -30,6 +30,7 @@ export default defineNuxtConfig({
 			"maskable-icon-512x512.png",
 		],
 		workbox: {
+			maximumFileSizeToCacheInBytes: 3000000,
 			globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
 			navigateFallback: "/",
 			navigateFallbackDenylist: [/^\/api\//],
