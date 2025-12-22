@@ -112,11 +112,6 @@ export default defineNuxtConfig({
 		},
 	},
 
-	// ---------------------------------------------------------------------------
-	// Supabase Configuration
-	// NOTE: Do NOT inline env values here; Netlify will treat them as leaked
-	// secrets. Rely on Netlify environment variables instead.
-	// ---------------------------------------------------------------------------
 	supabase: {
 		types: "@/types/database.types.ts",
 		// types: false,
@@ -143,12 +138,9 @@ export default defineNuxtConfig({
 		},
 	},
 
-	// ---------------------------------------------------------------------------
-	// App Head Configuration
-	// ---------------------------------------------------------------------------
 	app: {
 		head: {
-			title: "Chatravasa Management",
+			title: "Chatravasa - Students ka Ghar, Digitally Managed",
 			meta: [
 				{
 					name: "description",
