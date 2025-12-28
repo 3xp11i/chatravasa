@@ -63,7 +63,7 @@ There are few core features of this app in the beginning.
 - Complaints Management
 - Residents Management (for Admin)
 - Fees Management (for Admin)
-
+- Staff Management (for Admin)
 
 ### Meals Management
 This will be for Residents to view the weekly meals, and tell in advance if they are going to have the upcoming meals or not. Owner can update the weekly meals, and view the meal status of all residents in one view. There will be one today's meal status page where the numbers will be displayed in totality for the cook to keep the amount according to the number of residents.
@@ -73,10 +73,7 @@ This will be for Residents to view the weekly meals, and tell in advance if they
 **For Admin**
 - Create meal plan of each day of the week
 - Set latest time for residents to update their next meal's status. For e.g. latest time to update dinner status will be 6 PM, after residents' meal status will remain what it was before it and they won't be able to change it. This is to avoid issues like residents changing their meal status very late and then complaining of not getting food.
-- A **Meal Status Page** where the numbers will be shown for how many Residents are going to have meals for the day. This page will be password-protected, set by the Admin, and can be given to the cook to access the page (only need to enter the password once) and prepare the food accordingly. 
-
-
-
+- A **Meal Status Page** where the numbers will be shown for how many Residents are going to have meals for the day. 
 
 
 **For Residents**

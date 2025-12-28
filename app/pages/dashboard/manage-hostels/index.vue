@@ -2,13 +2,14 @@
   <div class="manage-hostels-container">
     <div class="header">
       <h1 class="text-3xl font-bold">Manage Your Hostels</h1>
-      <NuxtLink to="/dashboard/add-hostel" class="btn-primary">
+      <!-- Staff should not see Add Hostel -->
+      <NuxtLink v-if="apiIsAdmin" to="/dashboard/add-hostel" class="greenBtn">
         + Add Hostel
       </NuxtLink>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
+    <div v-if="isLoading" class="loading-state">
       <p>Loading your hostels...</p>
     </div>
 
@@ -19,30 +20,31 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="hostels.length === 0" class="empty-state">
+    <div v-else-if="displayHostels.length === 0" class="empty-state">
       <div class="empty-content">
         <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
         </svg>
         <h2 class="text-xl font-semibold mt-4">No hostels yet</h2>
-        <p class="text-gray-600 mt-2">Get started by adding your first hostel</p>
-        <NuxtLink to="/dashboard/add-hostel" class="btn-primary mt-6 inline-block">
+        <p v-if="apiIsAdmin" class="text-gray-600 mt-2">Get started by adding your first hostel</p>
+        <NuxtLink v-if="apiIsAdmin" to="/dashboard/add-hostel" class="btn-primary mt-6 inline-block">
           Add Your First Hostel
         </NuxtLink>
+        <p v-else class="text-gray-600 mt-2">You don't have any hostels assigned yet.</p>
       </div>
     </div>
 
     <!-- Hostels Grid -->
     <div v-else class="hostels-grid">
-      <div v-for="hostel in hostels" :key="hostel.id" class="hostel-card">
+      <div v-for="hostel in displayHostels" :key="hostel.id || hostel.hostel_slug" class="hostel-card">
         <div class="card-content">
           <div class="card-header">
-            <h3 class="hostel-name">{{ hostel.hostel_name }}</h3>
+            <h3 class="hostel-name">{{ hostel.hostel_name || hostel.hostel_slug }}</h3>
             <!-- <span class="hostel-id">#{{ hostel.id }}</span> -->
           </div>
           
           <div class="card-body">
-            <div class="info-row">
+            <div v-if="apiIsAdmin" class="info-row">
               <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -50,14 +52,14 @@
               <span>{{ hostel.address }}</span>
             </div>
             
-            <div class="info-row">
+            <div v-if="apiIsAdmin" class="info-row">
               <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
               </svg>
               <span>Total Rooms: {{ hostel.total_rooms }}</span>
             </div>
             
-            <div class="info-row">
+            <div v-if="apiIsAdmin" class="info-row">
               <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
@@ -69,7 +71,7 @@
             <NuxtLink :to="`/dashboard/hostels/${hostel.hostel_slug}`" class="btn-view">
               Open Hostel Page
             </NuxtLink>
-            <button @click="deleteHostel(hostel.id)" class="btn-delete">
+            <button v-if="apiIsAdmin" @click="deleteHostel(hostel.id)" class="btn-delete">
               Delete
             </button>
           </div>
@@ -105,14 +107,18 @@ import type { Database } from '@/types/database.types';
 
 type Hostel = Database['public']['Tables']['hostels']['Row'];
 
+const { isAdmin } = useCurrentUser();
+const { staffContext, loading: staffLoading, fetchStaffContext } = useStaffContext();
+
 const route = useRoute()
 const navigationStore = useNavigationStore()
 const pageKey = computed(() => route.path)
 const currentPage = ref(navigationStore.getLastPage(pageKey.value));
 const pageSize = 10;
 
+// useAsyncData properly caches in SPA mode
 const { data: hostelData, pending: loading, error: fetchError, refresh } = useAsyncData(
-  () => `hostels-page-${currentPage.value}`,
+  `hostels-page-${currentPage.value}`,
   () => $fetch('/api/manage-hostel/get-hostels', {
     method: 'GET',
     query: {
@@ -120,16 +126,49 @@ const { data: hostelData, pending: loading, error: fetchError, refresh } = useAs
       pageSize: pageSize,
     },
   }),
-  {
-    watch: [currentPage],
-    getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
-  }
+  { watch: [currentPage] }
 );
 
 // Explicitly name the refresh function for template usage
 const fetchHostels = refresh;
 
-const hostels = computed(() => hostelData.value?.hostels || []);
+// API-reported admin flag with client fallback to avoid misclassification
+const apiIsAdmin = computed(() => {
+  const apiFlag = (hostelData.value as any)?.isAdmin;
+  return apiFlag === true || isAdmin.value === true;
+});
+
+// Check if user has staff assignments
+const hasStaffAssignments = computed(() => {
+  return staffContext.value.assignments && staffContext.value.assignments.length > 0;
+});
+
+// Prefer API results for admins; for staff, use staff assignments
+const apiHostels = computed(() => hostelData.value?.hostels || []);
+const staffHostels = computed(() => (staffContext.value.assignments || []).map(a => ({
+  id: a.hostel_id,
+  hostel_slug: a.hostel_slug,
+  hostel_name: a.hostel_name,
+})));
+
+// Display logic: if admin use API, if staff use assignments
+const displayHostels = computed(() => {
+  if (apiIsAdmin.value) {
+    return apiHostels.value;
+  }
+  // For staff, use their assignments
+  return staffHostels.value;
+});
+
+// Combined loading state
+const isLoading = computed(() => {
+  if (apiIsAdmin.value) {
+    return loading.value;
+  }
+  // For staff, also wait for staff context to load
+  return loading.value || staffLoading.value;
+});
+
 const pagination = computed(() => hostelData.value?.pagination || {
   total: 0,
   page: 1,
@@ -137,6 +176,11 @@ const pagination = computed(() => hostelData.value?.pagination || {
   totalPages: 0,
 });
 const error = computed(() => fetchError.value ? 'Failed to load hostels' : '');
+
+onMounted(async () => {
+  // Always fetch staff context to determine role
+  await fetchStaffContext();
+});
 
 async function deleteHostel(hostelId: number) {
   if (!confirm('Are you sure you want to delete this hostel?')) {
@@ -307,6 +351,9 @@ function changePage(newPage: number) {
 .btn-view {
   flex: 1;
   background-color: #3b82f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;

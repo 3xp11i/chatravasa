@@ -37,6 +37,90 @@ export type Database = {
           },
         ]
       }
+      hostel_complaint_replies: {
+        Row: {
+          author: string
+          complaint_id: string
+          created_at: string
+          id: string
+          message: string
+        }
+        Insert: {
+          author: string
+          complaint_id: string
+          created_at?: string
+          id?: string
+          message: string
+        }
+        Update: {
+          author?: string
+          complaint_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_replies_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaint_replies_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "hostel_complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_complaints: {
+        Row: {
+          attached_media: string[]
+          author: string
+          created_at: string
+          description: string
+          hostel_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          attached_media: string[]
+          author: string
+          created_at?: string
+          description: string
+          hostel_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          attached_media?: string[]
+          author?: string
+          created_at?: string
+          description?: string
+          hostel_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaints_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hostel_meals: {
         Row: {
           created_at: string
@@ -68,6 +152,169 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hostel_meals_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_residents_fees: {
+        Row: {
+          created_at: string
+          hostel_id: string
+          monthly_fees: number[]
+          resident_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hostel_id: string
+          monthly_fees: number[]
+          resident_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hostel_id?: string
+          monthly_fees?: number[]
+          resident_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_fees_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hostel_fees_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: true
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_staff: {
+        Row: {
+          created_at: string
+          id: string
+          role_id: string
+          staff_member_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role_id: string
+          staff_member_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role_id?: string
+          staff_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_staff_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "hostel_staff_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hostel_staff_staff_member_id_fkey"
+            columns: ["staff_member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_staff_invites: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_staff_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "hostel_staff_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_staff_roles: {
+        Row: {
+          created_at: string
+          hostel_id: string
+          id: string
+          manage_complaints: boolean
+          manage_fees: boolean
+          manage_meals: boolean
+          manage_residents: boolean
+          title: string
+          view_complaints: boolean
+          view_fees: boolean
+          view_meals: boolean
+          view_residents: boolean
+        }
+        Insert: {
+          created_at?: string
+          hostel_id: string
+          id?: string
+          manage_complaints?: boolean
+          manage_fees?: boolean
+          manage_meals?: boolean
+          manage_residents?: boolean
+          title: string
+          view_complaints?: boolean
+          view_fees?: boolean
+          view_meals?: boolean
+          view_residents?: boolean
+        }
+        Update: {
+          created_at?: string
+          hostel_id?: string
+          id?: string
+          manage_complaints?: boolean
+          manage_fees?: boolean
+          manage_meals?: boolean
+          manage_residents?: boolean
+          title?: string
+          view_complaints?: boolean
+          view_fees?: boolean
+          view_meals?: boolean
+          view_residents?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_staff_roles_hostel_id_fkey"
             columns: ["hostel_id"]
             isOneToOne: false
             referencedRelation: "hostels"
@@ -182,33 +429,36 @@ export type Database = {
         Row: {
           created_at: string
           family_phone_number: string | null
+          first_name: string
           guardian_name: string | null
           hostel_id: string
           id: number
           joining_date: string | null
-          name: string
+          last_name: string
           phone: string
           room: string
         }
         Insert: {
           created_at?: string
           family_phone_number?: string | null
+          first_name: string
           guardian_name?: string | null
           hostel_id: string
           id?: number
           joining_date?: string | null
-          name: string
+          last_name: string
           phone: string
           room: string
         }
         Update: {
           created_at?: string
           family_phone_number?: string | null
+          first_name?: string
           guardian_name?: string | null
           hostel_id?: string
           id?: number
           joining_date?: string | null
-          name?: string
+          last_name?: string
           phone?: string
           room?: string
         }
@@ -382,7 +632,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      meal_analytics: {
+        Row: {
+          hostel_id: string | null
+          meal_id: string | null
+          meal_name: string | null
+          meal_served: boolean | null
+          meal_weekdays: number[] | null
+          status_deadline: number | null
+          timing: string | null
+          today: string | null
+          today_opted_count: number | null
+          today_weekday: number | null
+          tomorrow: string | null
+          tomorrow_opted_count: number | null
+          tomorrow_weekday: number | null
+          total_residents: number | null
+          weekday: number | null
+          weekly_opted_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_meals_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       authenticate_user: {

@@ -1,9 +1,5 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 
-function getFileExtension(filename: string): string {
-  return filename.split('.').pop() || 'jpg';
-}
-
 export default defineEventHandler(async (event) => {
   try {
     const user = await serverSupabaseUser(event);
@@ -12,18 +8,18 @@ export default defineEventHandler(async (event) => {
     }
     const client = await serverSupabaseClient(event);
     const query = getQuery(event);
-    const hostelId = parseInt(query.id as string);
+    const hostelSlug = query.slug as string;
 
-    if (!hostelId || isNaN(hostelId)) {
-      throw createError({ statusCode: 400, statusMessage: 'Valid Hostel ID is required' });
+    if (!hostelSlug || typeof hostelSlug !== 'string') {
+      throw createError({ statusCode: 400, statusMessage: 'Valid Hostel Slug is required' });
     }
 
     // Check if hostel belongs to the current user
     const { data: hostel, error: fetchError } = await client
       .from('hostels')
       .select('*')
-      .eq('id', hostelId)
-      .eq('admin_user_id', user.id)
+      .eq('hostel_slug', hostelSlug)
+      .eq('admin_user_id', user.sub)
       .single();
 
     if (fetchError || !hostel) {
@@ -39,29 +35,19 @@ export default defineEventHandler(async (event) => {
       for (const field of form) {
         if (field.name === 'hostelName') {
           updateData.hostel_name = field.data.toString();
-        } else if (field.name === 'hostelLocation') {
+        } else if (field.name === 'address') {
           updateData.address = field.data.toString();
-        } else if (field.name === 'numberOfRooms') {
+        } else if (field.name === 'totalRooms') {
           const newRooms = parseInt(field.data.toString());
           updateData.total_rooms = newRooms;
           // Update available rooms if it exceeds new total
           if (hostel.available_rooms != null && hostel.available_rooms > newRooms) {
             updateData.available_rooms = newRooms;
           }
-        } else if (field.name === 'hostelPhoto') {
-          // Handle photo upload
-          const fileName = `${hostel.hostel_slug}-${Date.now()}.${getFileExtension(field.filename || 'jpg')}`;
-          const { data: uploadData, error: uploadError } = await client.storage
-            .from('hostel-photos')
-            .upload(`hostels/${fileName}`, field.data);
-
-          if (uploadError) {
-            console.error('Photo upload error:', uploadError);
-          } else {
-            const { data: publicUrl } = client.storage
-              .from('hostel-photos')
-              .getPublicUrl(`hostels/${fileName}`);
-            updateData.photo_url = publicUrl.publicUrl;
+        } else if (field.name === 'availableRooms') {
+          const availRooms = parseInt(field.data.toString());
+          if (!isNaN(availRooms)) {
+            updateData.available_rooms = availRooms;
           }
         }
       }
@@ -76,7 +62,7 @@ export default defineEventHandler(async (event) => {
     const { data: updatedHostel, error: updateError } = await client
       .from('hostels')
       .update(updateData)
-      .eq('id', hostelId)
+      .eq('hostel_slug', hostelSlug)
       .select()
       .single();
 

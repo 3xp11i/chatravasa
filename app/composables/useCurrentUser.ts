@@ -1,12 +1,17 @@
-import { ref, computed, watch } from 'vue'
+import { computed, watch } from 'vue'
 import type { Database } from '~/types/database.types'
+
+type ProfileRow = Database['public']['Tables']['profiles']['Row']
 
 export const useCurrentUser = () => {
   const supabase = useSupabaseClient<Database>()
   const authUser = useSupabaseUser()
-  const userProfile = ref<Database['public']['Tables']['profiles']['Row'] | null>(null)
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  
+  // Use useState for shared state across all components - prevents refetching
+  const userProfile = useState<ProfileRow | null>('user-profile', () => null)
+  const loading = useState<boolean>('user-profile-loading', () => false)
+  const error = useState<string | null>('user-profile-error', () => null)
+  const hasFetched = useState<boolean>('user-profile-fetched', () => false)
 
   const isAdmin = computed(() => userProfile.value?.is_admin ?? authUser.value?.user_metadata?.is_admin ?? false)
   const isResident = computed(() => !!authUser.value && !isAdmin.value)
@@ -15,12 +20,16 @@ export const useCurrentUser = () => {
     return `${userProfile.value.first_name} ${userProfile.value.last_name}`
   })
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (force = false) => {
+    // Skip if already fetched and not forcing refresh
+    if (hasFetched.value && !force && userProfile.value) {
+      return
+    }
+
     // Try to get userId from authUser - could be in 'id' or 'sub' field
     const userId = authUser.value?.id || (authUser.value as any)?.user?.id || (authUser.value as any)?.sub
     if (!userId) {
       error.value = 'No authenticated user ID found'
-      console.log('No auth user ID at fetch time. Auth object:', authUser.value)
       return
     }
 
@@ -28,7 +37,6 @@ export const useCurrentUser = () => {
     error.value = null
 
     try {
-      console.log('Fetching profile for user:', userId)
       const { data, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
@@ -36,37 +44,46 @@ export const useCurrentUser = () => {
         .single()
 
       if (fetchError) {
-        console.error('Supabase error details:', { code: fetchError.code, message: fetchError.message, details: fetchError.details })
         error.value = `Database error: ${fetchError.message}`
+        hasFetched.value = true
         return
       }
 
       if (!data) {
         error.value = 'Profile not found in database'
-        console.error('No profile data returned for user:', userId)
+        hasFetched.value = true
         return
       }
 
       userProfile.value = data
-      console.log('Profile loaded successfully:', data)
+      hasFetched.value = true
     } catch (err: any) {
-      console.error('Exception while fetching profile:', err)
       error.value = `Error: ${err.message}`
+      hasFetched.value = true
     } finally {
       loading.value = false
     }
   }
 
-  // Only fetch profile when auth user actually has an ID
+  const clearUserProfile = () => {
+    userProfile.value = null
+    hasFetched.value = false
+    error.value = null
+  }
+
+  // Only watch for auth changes to handle login/logout
   watch(
     () => authUser.value?.id || (authUser.value as any)?.sub,
-    async (userId) => {
-      if (userId) {
-        console.log('Auth user ID detected:', userId)
+    async (userId, oldUserId) => {
+      if (userId && !oldUserId) {
+        // User just logged in - fetch profile
         await fetchUserProfile()
-      } else {
-        userProfile.value = null
-        error.value = null
+      } else if (!userId && oldUserId) {
+        // User logged out - clear profile
+        clearUserProfile()
+      } else if (userId && !hasFetched.value) {
+        // User is logged in but we haven't fetched yet
+        await fetchUserProfile()
       }
     },
     { immediate: true }

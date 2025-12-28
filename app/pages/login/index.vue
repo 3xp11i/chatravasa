@@ -26,6 +26,25 @@
           </div>
         </NuxtLink>
 
+        <!-- Staff Login Card -->
+        <NuxtLink to="/login/staff" 
+                  class="block bg-white rounded-xl shadow-md hover:shadow-xl p-6 transition-all duration-200 border border-gray-100 hover:border-primary/30 group">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-blue-600/10 flex items-center justify-center group-hover:bg-blue-600/20 transition-colors">
+              <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+            </div>
+            <div class="flex-1 text-left">
+              <h3 class="text-xl font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Staff Login</h3>
+              <p class="text-sm text-gray-600">Access your staff dashboard</p>
+            </div>
+            <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </NuxtLink>
+
         <!-- Admin Login Card -->
         <NuxtLink to="/login/admin" 
                   class="block bg-white rounded-xl shadow-md hover:shadow-xl p-6 transition-all duration-200 border border-gray-100 hover:border-primary/30 group">
@@ -78,6 +97,8 @@ onMounted(() => {
     e.preventDefault();
     deferredPrompt = e;
     showInstallButton.value = true;
+    console.log("showInstallButton", showInstallButton.value);
+    
   });
 
   window.addEventListener('appinstalled', () => {

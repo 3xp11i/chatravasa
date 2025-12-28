@@ -159,7 +159,7 @@ const logout = async () => {
     z-index: 1000;
     touch-action: pan-y; /* Allow vertical scroll, capture horizontal */
     will-change: transform; /* Optimize for animations */
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
 }
 
 .sideBar-backdrop {

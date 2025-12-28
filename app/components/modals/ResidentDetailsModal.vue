@@ -10,7 +10,10 @@
                          alt="Resident avatar"
                          class="h-20 w-20 rounded-full object-cover border border-gray-200" />
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900">{{ fullName }}</h2>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-2xl font-bold text-gray-900">{{ fullName }}</h2>
+                            <span v-if="props.resident.is_invite" class="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">Invited</span>
+                        </div>
                         <p class="text-gray-600">Room {{ form.room || 'Not Assigned' }}</p>
                     </div>
                 </div>
@@ -57,7 +60,9 @@
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
                         <a v-else
                            :href="`tel:${form.phone_number}`"
-                           class="mt-1 text-gray-900 hover:underline cursor-pointer">{{ form.phone_number }}</a>
+                           class="flex w-fit items-center mt-1 text-gray-900 bg-gray-200 p-2 rounded-md hover:underline cursor-pointer">
+                           <Icon name="material-symbols:call" class="inline-block mr-1"></Icon>
+                           {{ form.phone_number }}</a>
                     </div>
                     <div>
                         <label class="text-sm font-medium text-gray-600">Room</label>
@@ -150,6 +155,7 @@ type Resident = {
     father_name: string | null
     family_phone_number: string | null
     avatar: string | null
+    is_invite: boolean
 }
 
 const props = defineProps<{ resident: Resident; hostelSlug: string }>()

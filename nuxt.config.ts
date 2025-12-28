@@ -15,6 +15,8 @@ export default defineNuxtConfig({
 		"@nuxt/fonts",
 		"@vueuse/nuxt",
 		"@pinia/nuxt",
+		"@nuxt/icon",
+		"@nuxt/image",
 	],
 
 	vite: {
@@ -119,6 +121,11 @@ export default defineNuxtConfig({
 			login: "/login",
 			callback: "/login/callback",
 			exclude: ["/", "/login/*", "/contact"],
+		},
+		clientOptions: {
+			auth: {
+				persistSession: true,
+			},
 		},
 	},
 

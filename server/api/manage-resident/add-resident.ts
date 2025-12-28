@@ -1,5 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
 import type { Database } from "~/types/database.types";
+import { isStaffForHostel, staffHasPermission } from "#imports";
 
 export default defineEventHandler(async (event) => {
 	try {
@@ -13,13 +14,13 @@ export default defineEventHandler(async (event) => {
 
 		// Parse the request body
 		const body = await readBody(event);
-		const { name, phone, room, joining_date, guardian_name, family_phone_number, hostel_slug } = body;
+		const { first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, hostel_slug } = body;
 
 		// Validate required fields
-		if (!name || !phone || !room || !hostel_slug) {
+		if (!first_name || !last_name || !phone || !room || !hostel_slug) {
 			throw createError({
 				statusCode: 400,
-				statusMessage: "Missing required fields: name, phone, room, hostel_slug",
+				statusMessage: "Missing required fields: first_name, last_name, phone, room, hostel_slug",
 			});
 		}
 
@@ -46,12 +47,26 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 
-		// Verify the current user is the admin of this hostel
-		if (hostel.admin_user_id !== userId) {
-			throw createError({
-				statusCode: 403,
-				statusMessage: "You are not authorized to add residents to this hostel",
-			});
+		// Verify the current user is either the admin or staff with manage_residents permission
+		const isAdmin = hostel.admin_user_id === userId;
+		
+		if (!isAdmin) {
+			// If not admin, check if staff with manage_residents permission
+			const isStaff = await isStaffForHostel(event, userId, hostel.id);
+			if (!isStaff) {
+				throw createError({
+					statusCode: 403,
+					statusMessage: "You are not authorized to add residents to this hostel",
+				});
+			}
+			
+			const hasPermission = await staffHasPermission(event, userId, hostel.id, "manage_residents");
+			if (!hasPermission) {
+				throw createError({
+					statusCode: 403,
+					statusMessage: "You are not authorized to add residents to this hostel",
+				});
+			}
 		}
 
 		// Normalize phone number to E.164 format if needed
@@ -109,7 +124,8 @@ export default defineEventHandler(async (event) => {
 		const { data: newInvite, error: insertError } = await client
 			.from("resident_invites")
 			.insert({
-				name,
+				first_name,
+				last_name,
 				phone: normalizedPhone,
 				room,
 				hostel_id: hostel.id,

@@ -1,37 +1,63 @@
 <template>
-  <div class="mt-5 flex flex-col justify-center items-center">
+  <div class="mt-5 flex flex-col items-center min-h-screen">
 
     <h1 class="text-center">
-      <span v-if="loading && !hostelName" class="inline-block animate-pulse rounded text-sm ">Loading...</span>
-      <span v-else>{{ hostelName }}</span>
+      <span v-if="loading && !hostelName"
+            class="inline-block animate-pulse rounded text-sm ">Loading...</span>
+      <span v-else>{{ hostelName }} 🏡</span>
     </h1>
-    <NuxtLink class="greenBtn active:text-white">Edit Hostel</NuxtLink>
+
+    <NuxtLink v-if="isAdmin" :to="`/dashboard/hostels/${hostelSlug}/edit-hostel`" class="greenBtn flex items-center active:text-white">
+     <Icon name="material-symbols:edit" class="text-xl mr-1"></Icon> Edit Hostel</NuxtLink>
 
 
     <div class="page_links_container w-full">
 
-
-      <NuxtLink :to="`/dashboard/hostels/${hostelSlug}/manage-residents`"
-                class="page_links">Residents</NuxtLink>
-      <NuxtLink :to="`/dashboard/hostels/${hostelSlug}/manage-fees`"
-                class="page_links">Fees</NuxtLink>
-      <NuxtLink :to="`/dashboard/hostels/${hostelSlug}/manage-complaints`"
-                class="page_links">Complaints</NuxtLink>
-      <NuxtLink :to="`/dashboard/hostels/${hostelSlug}/manage-meals`"
-                class="page_links">Meals</NuxtLink>
+      <!-- Putting icons -->
+            <NuxtLink v-if="isAdmin || canViewResidents" :to="`/dashboard/hostels/${hostelSlug}/manage-residents`"
+                class="page_links">
+        <Icon name="ic:baseline-people" class="text-2xl mr-2"></Icon>
+        Residents
+      </NuxtLink>
+            <NuxtLink v-if="isAdmin || canViewFees" :to="`/dashboard/hostels/${hostelSlug}/manage-fees`"
+                class="page_links">
+        <Icon name="material-symbols:currency-rupee" class="text-2xl mr-2"></Icon>
+        Fees
+      </NuxtLink>
+            <NuxtLink v-if="isAdmin || canViewComplaints" :to="`/dashboard/hostels/${hostelSlug}/manage-complaints`"
+                class="page_links">
+        <Icon name="material-symbols:problem" class="text-2xl mr-2"></Icon>
+                Complaints</NuxtLink>
+            <NuxtLink v-if="isAdmin || canViewMeals" :to="`/dashboard/hostels/${hostelSlug}/manage-meals`"
+                class="page_links">
+        <Icon name="material-symbols:calendar-meal-2" class="text-2xl mr-2"></Icon>
+            Meals</NuxtLink>
+            <NuxtLink v-if="isAdmin" :to="`/dashboard/hostels/${hostelSlug}/manage-staff`"
+                class="page_links">
+        <Icon name="streamline-plump:office-worker-solid" class="text-2xl mr-2"></Icon>
+                Staff</NuxtLink>
+            <NuxtLink v-if="isAdmin" :to="`/dashboard/hostels/${hostelSlug}/manage-finances`"
+                class="page_links">
+        <Icon name="streamline-ultimate:accounting-calculator-1" class="text-2xl mr-2"></Icon>
+                Finances</NuxtLink>
 
     </div>
+
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { Database } from '@/types/database.types';
 
+
 type Hostel = Database['public']['Tables']['hostels']['Row'];
 
 const route = useRoute();
+const { isAdmin } = useCurrentUser();
+const { canViewForHostel, activateHostelBySlug, fetchStaffContext, staffContext } = useStaffContext();
 const hostelSlug = route.params.hostelslug as string;
 
+// useAsyncData properly caches in SPA mode
 const { data: hostelData, error, pending: loading } = useAsyncData(
   `hostel-${hostelSlug}`,
   () => $fetch<{ success: boolean; hostel: Hostel }>(`/api/manage-hostel/get-hostel-by-slug`, {
@@ -42,18 +68,29 @@ const { data: hostelData, error, pending: loading } = useAsyncData(
   }
 );
 
-const hostelName = computed(() => (hostelData.value as any)?.hostel?.hostel_name ?? '');
+
+const hostelName = computed(() => hostelData.value?.hostel?.hostel_name ?? '');
+
+// Per-hostel view permissions (will be reactive once staffContext loads)
+const canViewResidents = computed(() => canViewForHostel(hostelSlug, 'residents'));
+const canViewMeals = computed(() => canViewForHostel(hostelSlug, 'meals'));
+const canViewFees = computed(() => canViewForHostel(hostelSlug, 'fees'));
+const canViewComplaints = computed(() => canViewForHostel(hostelSlug, 'complaints'));
+
+onMounted(async () => {
+  // Ensure staff context is loaded for permission checks
+  await fetchStaffContext();
+  activateHostelBySlug(hostelSlug);
+});
 
 </script>
 
 <style scoped>
-
-
-a{
+a {
   text-decoration: none;
 }
-a:active{
-}
+
+a:active {}
 
 
 .page_links_container {
@@ -70,12 +107,13 @@ a:active{
   align-items: center;
   text-align: center;
   border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem 1rem;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
   color: rgba(0, 0, 0, 0.746);
   font-size: 1rem;
   font-weight: 500;
 }
+
 .page_links:active {
   transition: .2s ease;
   transform: scale(0.95);
@@ -83,18 +121,32 @@ a:active{
 
 
 .page_links:nth-child(1) {
-  background: linear-gradient(135deg, #ff9800, #ffbd5b);
+  background: linear-gradient(135deg, #ff9800, hsla(36, 100%, 68%, 0.8));
+  /* border: 2px solid hsl(36, 100%, 75%); */
 }
 
 .page_links:nth-child(2) {
-  background: linear-gradient(135deg, #2196F3, #74c0ff);
+  background: linear-gradient(135deg, #2196F3, hsla(207, 100%, 73%, 0.8));
+  border: 2px solid hsl(207, 100%, 75%);
 }
 
 .page_links:nth-child(3) {
-  background: linear-gradient(135deg, #f44336, #ed7676);
+  background: linear-gradient(135deg, #f44336, hsla(0, 77%, 70%, 0.8));
+  border: 2px solid hsl(0, 77%, 75%);
 }
 
 .page_links:nth-child(4) {
-  background: linear-gradient(135deg, #4CAF50, #74dd78);
+  background: linear-gradient(135deg, #4CAF50, hsla(122, 61%, 66%, 0.8));
+  border: 2px solid hsl(122, 61%, 75%);
+}
+
+.page_links:nth-child(5) {
+  background: linear-gradient(135deg, #9C27B0, hsla(283, 100%, 71%, 0.8));
+  border: 2px solid hsl(283, 100%, 75%);
+}
+
+.page_links:nth-child(6) {
+  background: linear-gradient(135deg, #607D8B, hsla(200, 14%, 57%, 0.8));
+  border: 2px solid hsl(200, 14%, 65%);
 }
 </style>

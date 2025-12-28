@@ -1,4 +1,5 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
+import { isStaffForHostel, staffHasPermission } from "#imports"
 
 export default defineEventHandler(async (event) => {
   try {
@@ -36,7 +37,11 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, statusMessage: "Hostel not found" })
     }
 
-    if (hostel.admin_user_id !== userId) {
+    const isAdmin = hostel.admin_user_id === userId
+    const isStaff = await isStaffForHostel(event, userId, hostel.id)
+    const hasPermission = isAdmin || (isStaff && await staffHasPermission(event, userId, hostel.id, "manage_meals"))
+    
+    if (!hasPermission) {
       throw createError({ statusCode: 403, statusMessage: "Forbidden" })
     }
 

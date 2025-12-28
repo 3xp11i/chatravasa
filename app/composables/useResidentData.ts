@@ -32,7 +32,9 @@ export const useResidentData = () => {
     // Reactive state
     residentData: computed(() => store.residentData),
     firstName: computed(() => {
-      const parts = (store.residentData?.name || '').split(' ');
+      const data = store.residentData as any;
+      if (data?.first_name) return data.first_name as string;
+      const parts = (data?.name || '').split(' ');
       return parts[0] || 'Resident';
     }),
     residentRoom: computed(() => store.residentData?.room || ''),

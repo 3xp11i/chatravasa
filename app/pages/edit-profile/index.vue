@@ -54,13 +54,11 @@
               <!-- Avatar Actions Button -->
               <button
                 type="button"
-                class="absolute bottom-2 right-2 w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-colors shadow-lg"
+                class="absolute -bottom-2 -right-2 w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-colors shadow-lg p-3!"
                 @click="openAvatarActionsModal"
                 aria-label="Manage profile photo"
               >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 13.5V16h2.5l7.372-7.372-2.5-2.5L4 13.5zm11.854-6.646a.5.5 0 000-.708l-2-2a.5.5 0 00-.708 0l-1.043 1.043 2.5 2.5 1.251-1.251z" />
-                </svg>
+                <Icon name="material-symbols:edit" class="text-4xl" />
               </button>
 
               <!-- Hidden File Input -->
@@ -79,13 +77,6 @@
             </h2>
             <p class="text-text-muted text-center mt-2">
               {{ isAdmin ? 'Admin Account' : 'Resident Account' }}
-            </p>
-          </div>
-
-          <!-- Role Badge Info -->
-          <div class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p class="text-sm text-blue-800">
-              <strong>Account Type:</strong> {{ isAdmin ? 'Administrator' : 'Resident' }}
             </p>
           </div>
 

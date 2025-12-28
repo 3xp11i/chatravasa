@@ -31,18 +31,32 @@
             <!-- Form -->
             <form @submit.prevent="handleSubmit">
                 <div class="space-y-4">
-                    <!-- Full Name -->
-                    <div>
-                        <label for="name"
-                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Full Name <span class="text-red-500">*</span>
-                        </label>
-                        <input id="name"
-                               v-model="formData.name"
-                               type="text"
-                               required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                               placeholder="Enter resident's full name" />
+                    <!-- First & Last Name -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="firstName"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                First Name <span class="text-red-500">*</span>
+                            </label>
+                            <input id="firstName"
+                                   v-model="formData.first_name"
+                                   type="text"
+                                   required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                   placeholder="Enter first name" />
+                        </div>
+                        <div>
+                            <label for="lastName"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            <input id="lastName"
+                                   v-model="formData.last_name"
+                                   type="text"
+                                   required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                   placeholder="Enter last name" />
+                        </div>
                     </div>
 
                     <!-- Phone Number -->
@@ -152,7 +166,8 @@ const route = useRoute()
 const hostelSlug = route.params.hostelslug as string
 
 const formData = ref({
-    name: '',
+    first_name: '',
+    last_name: '',
     phone: '',
     room: '',
     joining_date: '',
@@ -172,7 +187,8 @@ const handleSubmit = async () => {
         const response = await $fetch('/api/manage-resident/add-resident', {
             method: 'POST',
             body: {
-                name: formData.value.name,
+                first_name: formData.value.first_name,
+                last_name: formData.value.last_name,
                 phone: formData.value.phone,
                 room: formData.value.room,
                 joining_date: formData.value.joining_date || null,
@@ -189,7 +205,8 @@ const handleSubmit = async () => {
 
         // Reset form
         formData.value = {
-            name: '',
+            first_name: '',
+            last_name: '',
             phone: '',
             room: '',
             joining_date: '',

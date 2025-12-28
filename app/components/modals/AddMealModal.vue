@@ -98,7 +98,7 @@
                                 <input v-if="form.weekdays.includes(day.value)"
                                        v-model="menuInputs[day.value]"
                                        type="text"
-                                       :placeholder="`e.g., Poha, Paratha`"
+                                       :placeholder="`e.g., Dal Chawal, Poha`"
                                        class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
                             </div>
                         </div>

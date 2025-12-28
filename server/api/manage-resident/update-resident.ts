@@ -1,5 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
 import type { Database } from "~/types/database.types";
+import { isStaffForHostel, staffHasPermission } from "#imports";
 
 export default defineEventHandler(async (event) => {
 	const user = await serverSupabaseUser(event);
@@ -37,8 +38,19 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 404, statusMessage: "Hostel not found" });
 	}
 
-	if (hostel.admin_user_id !== user.sub) {
-		throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+	const isAdmin = hostel.admin_user_id === user.sub;
+	
+	if (!isAdmin) {
+		// If not admin, check if staff with manage_residents permission
+		const isStaff = await isStaffForHostel(event, user.sub, hostel.id);
+		if (!isStaff) {
+			throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+		}
+		
+		const hasPermission = await staffHasPermission(event, user.sub, hostel.id, "manage_residents");
+		if (!hasPermission) {
+			throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+		}
 	}
 
 	// Validate phone number if provided

@@ -6,24 +6,19 @@
         <button v-if="showSidebarButton" 
                 class="tapCircle"
                 @click="toggleSidebar">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 width="32"
-                 class=""
-                 height="32"
-                 viewBox="0 0 24 24">
-                <path fill="none"
-                      stroke="black"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M3 12h18M3 18h18M3 6h18" />
-            </svg>
+            <Icon name="material-symbols:menu-rounded" class="text-3xl text-gray-800" />
         </button>
         <!-- Show logo on root page -->
         <img v-else-if="isRootPage" 
              src="/pwa-192x192.png" 
              alt="Chatravasa Logo" 
              class="w-12 h-12 object-contain" />
+        <!-- Show back button on edit-profile page -->
+        <button v-else-if="isEditProfilePage"
+                class="tapCircle"
+                @click="navigateBack">
+            <Icon name="material-symbols:arrow-back-rounded" class="text-3xl text-gray-800" />
+        </button>
         <!-- Spacer when sidebar button is hidden to maintain layout -->
         <div v-else class="w-12"></div>
 
@@ -32,15 +27,16 @@
                   class="greenBtn justify-self-end">Login</NuxtLink>
 
         <!-- Show Dashboard/Home link for authenticated users (hide if already on that page) -->
-        <NuxtLink v-if="authUser && isAdmin && !route.path.startsWith('/dashboard')" to="/dashboard"
-                  class="greenBtn justify-self-end">Dashboard</NuxtLink>
+        <!-- <NuxtLink v-if="authUser && isAdmin && !route.path.startsWith('/dashboard')" to="/dashboard"
+                  class="greenBtn justify-self-end">Dashboard</NuxtLink> -->
         <NuxtLink v-if="authUser && isResident && !route.path.startsWith('/resident')" to="/resident"
                   class="greenBtn justify-self-end">Home</NuxtLink>
 
         <!-- Admin Navigation: Show when admin is in dashboard/hostels pages -->
         <NuxtLink v-if="authUser && isAdmin && route.path.startsWith('/dashboard/hostels/')" 
                   :to="isOnHostelHome ? '/dashboard' : hostelHomeUrl"
-                  class="greenBtn">
+                  class="greenBtn flex items-center">
+                  <Icon :name="isOnHostelHome ? 'material-symbols:team-dashboard' : 'material-symbols:home'" class="text-xl mr-1"></Icon>
             {{ isOnHostelHome ? 'Dashboard' : 'Hostel Home' }}
         </NuxtLink>
 
@@ -86,6 +82,22 @@ const showSidebarButton = computed(() => {
 const isRootPage = computed(() => {
     return route.path === '/';
 });
+
+// Check if current page is edit-profile
+const isEditProfilePage = computed(() => {
+    return route.path === '/edit-profile';
+});
+
+// Navigate back based on user role
+const navigateBack = () => {
+    if (isAdmin.value) {
+        navigateTo('/dashboard');
+    } else if (isResident.value) {
+        navigateTo('/resident');
+    } else {
+        navigateTo('/');
+    }
+};
 
 </script>
 

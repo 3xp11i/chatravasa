@@ -1,5 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
 import type { Database } from "~/types/database.types";
+import { isStaffForHostel, staffHasPermission } from "#imports";
 
 export default defineEventHandler(async (event) => {
 	const user = await serverSupabaseUser(event);
@@ -18,6 +19,7 @@ export default defineEventHandler(async (event) => {
 	const pageLimit = limit ? parseInt(limit as string) : 10;
 	const pageOffset = offset ? parseInt(offset as string) : 0;
 
+	// RLS policies handle access - staff can view hostels they're assigned to
 	const { data: hostel, error: hostelError } = await client
 		.from("hostels")
 		.select("id, admin_user_id")
@@ -28,21 +30,23 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 404, statusMessage: "Hostel not found" });
 	}
 
-	if (hostel.admin_user_id !== user.sub) {
-		throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+	// Check if user is admin or staff with view_residents permission
+	const isAdmin = hostel.admin_user_id === user.sub;
+	
+	if (!isAdmin) {
+		// If not admin, check if staff with view_residents permission
+		const isStaff = await isStaffForHostel(event, user.sub, hostel.id);
+		if (!isStaff) {
+			throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+		}
+		
+		const hasViewPermission = await staffHasPermission(event, user.sub, hostel.id, "view_residents");
+		if (!hasViewPermission) {
+			throw createError({ statusCode: 403, statusMessage: "You do not have permission to view residents" });
+		}
 	}
 
-	// Get total count
-	const { count, error: countError } = await client
-		.from("residents")
-		.select("*", { count: "exact", head: true })
-		.eq("hostel_id", hostel.id);
-
-	if (countError) {
-		throw createError({ statusCode: 500, statusMessage: "Failed to count residents" });
-	}
-
-	// Get paginated residents
+	// RLS policies handle access - staff with view_residents can see residents
 	const { data: residents, error: residentsError } = await client
 		.from("residents")
 		.select(`
@@ -54,27 +58,66 @@ export default defineEventHandler(async (event) => {
 			created_at,
 			profiles!inner(first_name, last_name, phone, avatar)
 		`)
-		.eq("hostel_id", hostel.id)
-		.order("created_at", { ascending: false })
-		.range(pageOffset, pageOffset + pageLimit - 1);
+		.eq("hostel_id", hostel.id);
 
 	if (residentsError) {
 		throw createError({ statusCode: 500, statusMessage: "Failed to load residents" });
 	}
 
+	// RLS policies handle access - staff with manage_residents can see invites
+	const { data: invites, error: invitesError } = await client
+		.from("resident_invites")
+		.select("id, first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, created_at")
+		.eq("hostel_id", hostel.id);
+
+	if (invitesError) {
+		throw createError({ statusCode: 500, statusMessage: "Failed to load resident invites" });
+	}
+
+	// Transform residents
+	const transformedResidents = (residents || []).map(r => ({
+		id: r.id,
+		first_name: r.profiles.first_name,
+		last_name: r.profiles.last_name,
+		phone_number: r.profiles.phone,
+		avatar: r.profiles.avatar,
+		room: r.room,
+		joining_date: r.joining_date,
+		father_name: r.guardian_name,
+		family_phone_number: r.family_phone_number,
+		created_at: r.created_at,
+		is_invite: false,
+	}));
+
+	// Transform resident invites
+	const transformedInvites = (invites || []).map(i => ({
+		id: String(i.id), // Convert numeric ID to string for consistency
+		first_name: i.first_name,
+		last_name: i.last_name,
+		phone_number: i.phone,
+		avatar: null,
+		room: i.room,
+		joining_date: i.joining_date,
+		father_name: i.guardian_name,
+		family_phone_number: i.family_phone_number,
+		created_at: i.created_at,
+		is_invite: true,
+	}));
+
+	// Combine and sort by created_at (descending)
+	const combinedData = [...transformedResidents, ...transformedInvites];
+	console.log(combinedData);
+	
+	combinedData.sort(
+		(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+	);
+
+	const total = combinedData.length;
+	const paginated = combinedData.slice(pageOffset, pageOffset + pageLimit);
+
 	return {
-		residents: residents?.map(r => ({
-			id: r.id,
-			first_name: r.profiles.first_name,
-			last_name: r.profiles.last_name,
-			phone_number: r.profiles.phone,
-			avatar: r.profiles.avatar,
-			room: r.room,
-			joining_date: r.joining_date,
-			father_name: r.guardian_name,
-			family_phone_number: r.family_phone_number,
-		})) || [],
-		total: count || 0,
+		residents: paginated,
+		total,
 		limit: pageLimit,
 		offset: pageOffset,
 	};
