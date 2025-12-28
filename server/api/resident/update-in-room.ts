@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     const method = (event as any).node?.req?.method || "POST";
 
     if (method === "GET") {
-      // Return current in-room status, default false if not set
+      // Return current in-room status, default true if not set
       const { data, error } = await client
         .from("residents_metadata")
         .select("in_room")
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 500, statusMessage: error.message });
       }
 
-      return { success: true, inRoom: data?.in_room ?? false };
+      return { success: true, inRoom: data?.in_room ?? true };
     }
 
     const { inRoom } = await readBody(event);

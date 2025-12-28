@@ -38,7 +38,10 @@ export const useResidentData = () => {
       return parts[0] || 'Resident';
     }),
     residentRoom: computed(() => store.residentData?.room || ''),
-    inRoom: computed(() => store.inRoomStatus),
+    inRoom: computed(() => {
+      // If inRoomStatus is null or undefined, default to true (in-room)
+      return store.inRoomStatus === undefined || store.inRoomStatus === null ? true : store.inRoomStatus;
+    }),
     loading: computed(() => store.loading),
     inRoomLoading: computed(() => store.inRoomLoading),
     error: computed(() => store.error),

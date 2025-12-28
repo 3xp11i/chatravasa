@@ -56,9 +56,9 @@ export const useResidentStore = defineStore('resident', () => {
       const status = await $fetch<InRoomStatus>('/api/resident/update-in-room', {
         method: 'GET',
       });
-
-      inRoomStatus.value = !!status?.inRoom;
-      return status?.inRoom;
+      // If status?.inRoom is undefined or null, default to true
+      inRoomStatus.value = status?.inRoom === undefined || status?.inRoom === null ? true : !!status?.inRoom;
+      return inRoomStatus.value;
     } catch (e: any) {
       console.warn('Failed to fetch in-room status:', e);
       return null;

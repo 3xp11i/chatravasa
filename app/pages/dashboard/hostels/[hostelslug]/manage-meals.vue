@@ -46,7 +46,7 @@
           <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-lg font-semibold text-gray-900">Today</h3>
-              <span class="text-sm text-gray-500">{{ formatDate(analyticsData.today) }} ({{ days[analyticsData.todayWeekday].labelLong }})</span>
+              <span class="text-sm text-gray-500">{{ formatDate(analyticsData.today) }} ({{ days[analyticsData.todayWeekday]?.labelLong }})</span>
             </div>
             <div class="space-y-2">
               <div v-for="meal in todayMeals" :key="meal.meal_id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
@@ -67,7 +67,7 @@
           <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-lg font-semibold text-gray-900">Tomorrow</h3>
-              <span class="text-sm text-gray-500">{{ formatDate(analyticsData.tomorrow) }} ({{ days[analyticsData.tomorrowWeekday].labelLong }})</span>
+              <span class="text-sm text-gray-500">{{ formatDate(analyticsData?.tomorrow) }} ({{ days[analyticsData?.tomorrowWeekday]?.labelLong }})</span>
             </div>
             <div class="space-y-2">
               <div v-for="meal in tomorrowMeals" :key="meal.meal_id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">

@@ -12,6 +12,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
         hasSession = !!session?.user;
     }
 
+
+    // Block access to /dashboard or /resident if not authenticated
     if ((to.path.startsWith("/dashboard") || to.path.startsWith("/resident")) && !hasSession && !user.value) {
         return navigateTo("/login");
     }
@@ -20,30 +22,38 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (to.path.startsWith("/login") && (user.value || hasSession)) {
         const { userProfile, fetchUserProfile } = useCurrentUser();
         const { staffContext, fetchStaffContext } = useStaffContext();
+        const residentStore = useResidentStore();
 
         // Ensure we have the profile loaded
         if (!userProfile.value) {
             await fetchUserProfile();
         }
-        
+
         // Check admin status first
         const isAdminUser = userProfile.value?.is_admin ?? user.value?.user_metadata?.is_admin ?? false;
-        
         if (isAdminUser) {
             return navigateTo("/dashboard");
         }
-        
+
         // Fetch staff context to check if user is staff
         await fetchStaffContext();
-        
-        // Check if user has staff assignments
         const hasStaffAssignments = staffContext.value.assignments && staffContext.value.assignments.length > 0;
-        
         if (hasStaffAssignments) {
             return navigateTo("/dashboard");
         }
-        
-        // Not admin and not staff - go to resident
-        return navigateTo("/resident");
+
+        // Check if user is a resident
+        if (!residentStore.isInitialized) {
+            try {
+                await residentStore.fetchResidentData();
+            } catch (e) {}
+        }
+        const isResident = !!residentStore.residentData?.hasResident;
+        if (isResident) {
+            return navigateTo("/resident");
+        }
+
+        // If not admin, not staff, not resident, fallback to /dashboard
+        return navigateTo("/dashboard");
     }
 });
