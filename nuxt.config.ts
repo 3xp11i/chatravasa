@@ -17,6 +17,7 @@ export default defineNuxtConfig({
 		"@pinia/nuxt",
 		"@nuxt/icon",
 		"@nuxt/image",
+		"@nuxtjs/i18n",
 	],
 
 	vite: {
@@ -183,5 +184,20 @@ export default defineNuxtConfig({
 				"latin",
 			],
 		},
+	},
+	i18n: {
+		// langDir: '~/i18n/locales/',
+		strategy: 'no_prefix',
+		defaultLocale: "en",
+		detectBrowserLanguage: {
+			useCookie: true,
+			cookieKey: 'locale',
+			alwaysRedirect: false,
+			fallbackLocale: 'en'
+		},
+		locales: [
+			{ code: "en", name: "English", file: "en.json" },
+			{ code: "hi", name: "Hindi", file: "hi.json" },
+		],
 	},
 });

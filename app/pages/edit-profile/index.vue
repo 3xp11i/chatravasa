@@ -5,7 +5,7 @@
         <div class="min-h-[70vh] flex items-center justify-center">
           <div class="flex flex-col items-center gap-3 text-text">
             <div class="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
-            <p class="text-sm font-medium">Checking your session...</p>
+            <p class="text-sm font-medium">{{ t('checkingSession') }}</p>
           </div>
         </div>
       </template>
@@ -28,9 +28,9 @@
         <div class="space-y-6">
         <!-- Page Title -->
         <div>
-          <h1 class="text-3xl font-bold mb-2">Edit Profile</h1>
+          <h1 class="text-3xl font-bold mb-2">{{ t('editProfile') }}</h1>
           <p class="text-text-muted">
-            {{ isAdmin ? 'Manage your admin account details' : 'View your profile information' }}
+            {{ isAdmin ? t('manageAdminDetails') : t('viewProfileInfo') }}
           </p>
         </div>
 
@@ -76,7 +76,7 @@
               {{ userProfile.first_name }} {{ userProfile.last_name }}
             </h2>
             <p class="text-text-muted text-center mt-2">
-              {{ isAdmin ? 'Admin Account' : 'Resident Account' }}
+              {{ isAdmin ? t('adminAccount') : t('residentAccount') }}
             </p>
           </div>
 
@@ -84,12 +84,12 @@
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <!-- First Name Field -->
             <div class="form-group">
-              <label for="firstName" class="font-medium block mb-2">First Name</label>
+              <label for="firstName" class="font-medium block mb-2">{{ t('firstName') }}</label>
               <input
                 id="firstName"
                 v-model="formData.firstName"
                 type="text"
-                placeholder="Enter first name"
+                :placeholder="t('enterFirstName')"
                 :disabled="!isAdmin || submitting"
                 class="w-full"
               />
@@ -100,12 +100,12 @@
 
             <!-- Last Name Field -->
             <div class="form-group">
-              <label for="lastName" class="font-medium block mb-2">Last Name</label>
+              <label for="lastName" class="font-medium block mb-2">{{ t('lastName') }}</label>
               <input
                 id="lastName"
                 v-model="formData.lastName"
                 type="text"
-                placeholder="Enter last name"
+                :placeholder="t('enterLastName')"
                 :disabled="!isAdmin || submitting"
                 class="w-full"
               />
@@ -116,7 +116,7 @@
 
             <!-- Phone Number Field (Disabled) -->
             <div class="form-group">
-              <label for="phone" class="font-medium block mb-2">Phone Number</label>
+              <label for="phone" class="font-medium block mb-2">{{ t('phoneNumber') }}</label>
               <input
                 id="phone"
                 :value="userProfile.phone"
@@ -125,13 +125,13 @@
                 class="w-full bg-gray-50 cursor-not-allowed"
               />
               <p class="text-text-muted text-xs mt-1">
-                Phone number is linked to your authentication and cannot be changed here. Contact support if you need to update it.
+                {{ t('phoneNumberNote') }}
               </p>
             </div>
 
             <!-- Account Created Date -->
             <div class="form-group">
-              <label for="createdAt" class="font-medium block mb-2">Member Since</label>
+              <label for="createdAt" class="font-medium block mb-2">{{ t('memberSince') }}</label>
               <input
                 id="createdAt"
                 :value="formatDate(userProfile.created_at)"
@@ -150,8 +150,8 @@
                 class="flex-1 bg-primary text-white font-medium py-3 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :disabled="submitting || !hasChanges"
               >
-                <span v-if="!submitting">Save Changes</span>
-                <span v-else>Saving...</span>
+                <span v-if="!submitting">{{ t('saveChanges') }}</span>
+                <span v-else>{{ t('saving') }}</span>
               </button>
 
               <!-- Cancel Button -->
@@ -160,7 +160,7 @@
                 class="flex-1 border-2 border-primary text-primary font-medium py-3 rounded-lg hover:bg-gray-50 transition-colors"
                 @click="resetForm"
               >
-                {{ isAdmin && hasChanges ? 'Cancel' : 'Back' }}
+                {{ isAdmin && hasChanges ? t('cancel') : t('back') }}
               </button>
             </div>
 
@@ -178,17 +178,17 @@
 
         <!-- Info Box for Residents -->
         <div v-if="!isAdmin" class="card bg-blue-50 border border-blue-200">
-          <h3 class="font-semibold text-blue-900 mb-2">📝 Info</h3>
+          <h3 class="font-semibold text-blue-900 mb-2">{{ t('info') }}</h3>
           <p class="text-sm text-blue-800">
-            Your profile information is managed by the hostel administration. To update your details other than your profile picture, please contact the admin.
+            {{ t('residentInfoText') }}
           </p>
         </div>
 
         <!-- Info Box for Admins -->
         <div v-if="isAdmin" class="card bg-gray-50 border border-gray-200">
-          <h3 class="font-semibold text-gray-900 mb-2">💡 Note</h3>
+          <h3 class="font-semibold text-gray-900 mb-2">{{ t('note') }}</h3>
           <p class="text-sm text-gray-700">
-            You can update your profile picture by clicking the camera icon above. Phone number updates will be handled separately for security reasons.
+            {{ t('adminNoteText') }}
           </p>
         </div>
         </div>
@@ -204,9 +204,9 @@
             @click="retryFetch"
             :disabled="loading"
           >
-            {{ loading ? 'Retrying...' : 'Retry' }}
+            {{ loading ? t('retrying') : t('retry') }}
           </button>
-          <p class="text-red-700 text-xs mt-2">Check the browser console (F12) for detailed error information.</p>
+          <p class="text-red-700 text-xs mt-2">{{ t('checkConsole') }}</p>
         </div>
       </template>
 
@@ -215,7 +215,7 @@
         <div class="min-h-[50vh] flex items-center justify-center">
           <div class="flex flex-col items-center gap-3 text-text">
             <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-            <p class="text-sm font-medium">Loading your profile...</p>
+            <p class="text-sm font-medium">{{ t('loadingProfile') }}</p>
           </div>
         </div>
       </template>
@@ -231,6 +231,8 @@
 import { ref, computed, onMounted, watch, onUnmounted, defineAsyncComponent } from 'vue'
 import { ModalsContainer, useModal } from 'vue-final-modal'
 import type { Database } from '~/types/database.types'
+
+const { t } = useI18n()
 
 definePageMeta({
   layout: 'default',
@@ -418,7 +420,7 @@ const handleImageSelect = async (event: Event) => {
 
   // Validate file size
   if (file.size > MAX_FILE_SIZE) {
-    errorMessage.value = `File size must be less than 5MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+    errorMessage.value = t('fileSizeError', { size: (file.size / 1024 / 1024).toFixed(2) })
     processingAvatar.value = false
     return
   }
@@ -426,7 +428,7 @@ const handleImageSelect = async (event: Event) => {
   // Validate file type
   const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
   if (!validTypes.includes(file.type)) {
-    errorMessage.value = 'Please upload a valid image file (JPEG, PNG, GIF, or WebP)'
+    errorMessage.value = t('invalidFileType')
     processingAvatar.value = false
     return
   }
@@ -468,7 +470,7 @@ const handleImageSelect = async (event: Event) => {
     processingAvatar.value = false
   } catch (err: any) {
     console.error('Image processing error:', err)
-    errorMessage.value = err.message || 'Failed to process image. Please try another file.'
+    errorMessage.value = err.message || t('failedProcessImage')
     if (fileInput.value) {
       fileInput.value.value = ''
     }
@@ -487,7 +489,7 @@ const handleAvatarConfirm = async (file: File) => {
     await uploadAvatar(file)
 
     // Inform modal of success; it will show message and auto-close
-    uploadStatusMessage.value = 'Profile picture uploaded successfully!'
+    uploadStatusMessage.value = t('avatarUploaded')
     uploadStatus.value = 'success'
 
     // Reset file input and local state
@@ -499,7 +501,7 @@ const handleAvatarConfirm = async (file: File) => {
     previewUrl.value = ''
   } catch (err: any) {
     console.error('Avatar upload error:', err)
-    uploadStatusMessage.value = err.message || 'Failed to upload avatar. Please try again.'
+    uploadStatusMessage.value = err.message || t('failedUploadAvatar')
     uploadStatus.value = 'error'
   } finally {
     uploadingAvatar.value = false
@@ -509,7 +511,7 @@ const handleAvatarConfirm = async (file: File) => {
 const handleRemoveAvatar = async () => {
   if (!userProfile.value?.avatar) return
 
-  const confirmed = window.confirm('Remove your profile picture?')
+  const confirmed = window.confirm(t('confirmRemoveAvatar'))
   if (!confirmed) return
 
   removingAvatar.value = true
@@ -520,7 +522,7 @@ const handleRemoveAvatar = async () => {
 
   try {
     await removeAvatar()
-    successMessage.value = 'Profile picture removed.'
+    successMessage.value = t('avatarRemoved')
 
     if (previewUrl.value && previewUrl.value.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl.value)
@@ -533,7 +535,7 @@ const handleRemoveAvatar = async () => {
     }
   } catch (err: any) {
     console.error('Avatar removal error:', err)
-    errorMessage.value = err.message || 'Failed to remove avatar. Please try again.'
+    errorMessage.value = err.message || t('failedRemoveAvatar')
   } finally {
     removingAvatar.value = false
   }
@@ -573,11 +575,11 @@ const validateForm = () => {
   errors.value = { firstName: '', lastName: '' }
 
   if (!formData.value.firstName.trim()) {
-    errors.value.firstName = 'First name is required'
+    errors.value.firstName = t('firstNameRequired')
   }
 
   if (!formData.value.lastName.trim()) {
-    errors.value.lastName = 'Last name is required'
+    errors.value.lastName = t('lastNameRequired')
   }
 
   return !errors.value.firstName && !errors.value.lastName
@@ -601,7 +603,7 @@ const handleSubmit = async () => {
   try {
     await updateProfile(formData.value.firstName, formData.value.lastName)
     
-    successMessage.value = 'Profile updated successfully!'
+    successMessage.value = t('profileUpdated')
     originalFormData.value.firstName = formData.value.firstName
     originalFormData.value.lastName = formData.value.lastName
     
@@ -609,7 +611,7 @@ const handleSubmit = async () => {
       successMessage.value = ''
     }, 3000)
   } catch (err: any) {
-    errorMessage.value = err.message || 'Failed to update profile. Please try again.'
+    errorMessage.value = err.message || t('failedUpdateProfile')
     console.error('Profile update error:', err)
   } finally {
     submitting.value = false

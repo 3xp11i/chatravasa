@@ -121,6 +121,38 @@ export type Database = {
           },
         ]
       }
+      hostel_fee_categories: {
+        Row: {
+          amount: string
+          created_at: string
+          hostel_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          amount: string
+          created_at?: string
+          hostel_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          amount?: string
+          created_at?: string
+          hostel_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_fee_categories_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hostel_meals: {
         Row: {
           created_at: string
@@ -159,38 +191,38 @@ export type Database = {
           },
         ]
       }
-      hostel_residents_fees: {
+      hostel_resident_fee_info: {
         Row: {
           created_at: string
-          hostel_id: string
-          monthly_fees: number[]
+          discount_amount: string | null
+          fee_category_id: string
+          id: string
           resident_id: string
-          updated_at: string
         }
         Insert: {
           created_at?: string
-          hostel_id: string
-          monthly_fees: number[]
+          discount_amount?: string | null
+          fee_category_id: string
+          id?: string
           resident_id: string
-          updated_at?: string
         }
         Update: {
           created_at?: string
-          hostel_id?: string
-          monthly_fees?: number[]
+          discount_amount?: string | null
+          fee_category_id?: string
+          id?: string
           resident_id?: string
-          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "hostel_fees_hostel_id_fkey"
-            columns: ["hostel_id"]
+            foreignKeyName: "hostel_resident_fee_info_fee_category_id_fkey"
+            columns: ["fee_category_id"]
             isOneToOne: false
-            referencedRelation: "hostels"
+            referencedRelation: "hostel_fee_categories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "hostel_fees_resident_id_fkey"
+            foreignKeyName: "hostel_resident_fee_info_resident_id_fkey"
             columns: ["resident_id"]
             isOneToOne: true
             referencedRelation: "residents"
@@ -352,6 +384,13 @@ export type Database = {
             referencedRelation: "hostel_meals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "hostel_weekly_menu_hostel_meal_id_fkey"
+            columns: ["hostel_meal_id"]
+            isOneToOne: false
+            referencedRelation: "meal_analytics"
+            referencedColumns: ["meal_id"]
+          },
         ]
       }
       hostels: {
@@ -425,6 +464,47 @@ export type Database = {
         }
         Relationships: []
       }
+      resident_fee_payments: {
+        Row: {
+          amount_paid: string
+          created_at: string
+          discount_amount: string | null
+          id: string
+          month_index: number
+          paid_on: string
+          resident_id: string
+          total_amount: string
+        }
+        Insert: {
+          amount_paid: string
+          created_at?: string
+          discount_amount?: string | null
+          id?: string
+          month_index: number
+          paid_on: string
+          resident_id: string
+          total_amount: string
+        }
+        Update: {
+          amount_paid?: string
+          created_at?: string
+          discount_amount?: string | null
+          id?: string
+          month_index?: number
+          paid_on?: string
+          resident_id?: string
+          total_amount?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resident_fee_payments_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resident_invites: {
         Row: {
           created_at: string
@@ -435,6 +515,7 @@ export type Database = {
           id: number
           joining_date: string | null
           last_name: string
+          monthly_fee_amount: string | null
           phone: string
           room: string
         }
@@ -447,6 +528,7 @@ export type Database = {
           id?: number
           joining_date?: string | null
           last_name: string
+          monthly_fee_amount?: string | null
           phone: string
           room: string
         }
@@ -459,6 +541,7 @@ export type Database = {
           id?: number
           joining_date?: string | null
           last_name?: string
+          monthly_fee_amount?: string | null
           phone?: string
           room?: string
         }
@@ -507,6 +590,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "hostel_meals"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resident_meal_overrides_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meal_analytics"
+            referencedColumns: ["meal_id"]
           },
           {
             foreignKeyName: "resident_meal_overrides_resident_id_fkey"
@@ -622,6 +712,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "residents_weekly_meal_status_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meal_analytics"
+            referencedColumns: ["meal_id"]
+          },
+          {
             foreignKeyName: "residents_weekly_meal_status_resident_id_fkey"
             columns: ["resident_id"]
             isOneToOne: false
@@ -683,6 +780,7 @@ export type Database = {
         Returns: Json
       }
       hash_pin: { Args: { pin_text: string }; Returns: string }
+      is_staff_of_hostel: { Args: { hostel_id: string }; Returns: boolean }
       set_config: {
         Args: { is_local?: boolean; new_value: string; setting_name: string }
         Returns: string

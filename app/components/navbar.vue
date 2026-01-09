@@ -24,27 +24,27 @@
 
         <!-- Show login button for non-authenticated users -->
         <NuxtLink to="/login" v-if="!authUser"
-                  class="greenBtn justify-self-end">Login</NuxtLink>
+                  class="greenBtn justify-self-end">{{ t('login') }}</NuxtLink>
 
         <!-- Show Dashboard/Home link for authenticated users (hide if already on that page) -->
         <!-- <NuxtLink v-if="authUser && isAdmin && !route.path.startsWith('/dashboard')" to="/dashboard"
                   class="greenBtn justify-self-end">Dashboard</NuxtLink> -->
         <NuxtLink v-if="authUser && isResident && !route.path.startsWith('/resident')" to="/resident"
-                  class="greenBtn justify-self-end">Home</NuxtLink>
+                  class="greenBtn justify-self-end">{{ t('home') }}</NuxtLink>
 
         <!-- Admin Navigation: Show when admin is in dashboard/hostels pages -->
         <NuxtLink v-if="authUser && isAdmin && route.path.startsWith('/dashboard/hostels/')" 
                   :to="isOnHostelHome ? '/dashboard' : hostelHomeUrl"
                   class="greenBtn flex items-center">
                   <Icon :name="isOnHostelHome ? 'material-symbols:team-dashboard' : 'material-symbols:home'" class="text-xl mr-1"></Icon>
-            {{ isOnHostelHome ? 'Dashboard' : 'Hostel Home' }}
+            {{ isOnHostelHome ? t('dashboard') : t('hostelHome') }}
         </NuxtLink>
 
         <!-- Resident Navigation: Show when resident is in resident pages -->
         <NuxtLink v-if="authUser && isResident && route.path.startsWith('/resident/')"
                   :to="isOnResidentHome ? '/resident' : '/resident'"
                   class="greenBtn">
-            Open Homepage
+            {{ t('openHomepage') }}
         </NuxtLink>
 
     </nav>
@@ -53,6 +53,10 @@
 </template>
 
 <script lang="ts" setup>
+
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const { toggleSidebar } = useSidebar();
 const { isAdmin, isResident } = useCurrentUser();

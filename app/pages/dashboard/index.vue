@@ -3,8 +3,8 @@
         <div class="max-w-4xl mx-auto">
             <!-- Admin View -->
             <div v-if="!isStaff">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                <p class="text-gray-600 mb-6">Manage your hostels and staff</p>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ t('dashboardTitle') }}</h1>
+                <p class="text-gray-600 mb-6">{{ t('dashboardSubtitle') }}</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <NuxtLink to="/dashboard/manage-hostels" 
@@ -15,9 +15,9 @@
                                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                                 </svg>
                             </div>
-                            <h2 class="text-xl font-semibold text-gray-900">Manage Hostels</h2>
+                            <h2 class="text-xl font-semibold text-gray-900">{{ t('manageHostels') }}</h2>
                         </div>
-                        <p class="text-sm text-gray-600">Create, edit, and manage your hostels</p>
+                        <p class="text-sm text-gray-600">{{ t('manageHostelsDesc') }}</p>
                     </NuxtLink>
                 </div>
             </div>
@@ -29,12 +29,12 @@
                     <div class="inline-block">
                         <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
                     </div>
-                    <p class="text-gray-600 mt-4">Loading your context...</p>
+                    <p class="text-gray-600 mt-4">{{ t('loadingContext') }}</p>
                 </div>
 
                 <div v-else class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-1">Welcome, {{ staffContext.member.first_name }}!</h1>
-                    <p class="text-gray-600">You have access to multiple hostels. Open one to manage.</p>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-1">{{ t('welcomeStaff', { name: staffContext.member.first_name }) }}</h1>
+                    <p class="text-gray-600">{{ t('staffSubtitle') }}</p>
                 </div>
 
                 <div v-if="!staffLoading" class="grid grid-cols-1 gap-4">
@@ -45,28 +45,31 @@
                                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                                 </svg>
                             </div>
-                            <h2 class="text-xl font-semibold text-gray-900">Manage Hostels</h2>
+                            <h2 class="text-xl font-semibold text-gray-900">{{ t('manageHostels') }}</h2>
                         </div>
-                        <p class="text-sm text-gray-600">Open a hostel to view and manage features based on your role.</p>
+                        <p class="text-sm text-gray-600">{{ t('manageHostelsStaffDesc') }}</p>
                     </NuxtLink>
                 </div>
 
                 <!-- No Permission Message -->
                 <div v-if="!canView('residents') && !canView('meals') && !canView('fees') && !canView('complaints')"
                      class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
-                    <p class="text-yellow-800">You don't have permission to access any resources. Please contact your administrator.</p>
+                    <p class="text-yellow-800">{{ t('noPermission') }}</p>
                 </div>
             </div>
 
             <!-- Loading State -->
             <div v-else class="text-center py-10">
-                <p class="text-gray-600">Loading dashboard...</p>
+                <p class="text-gray-600">{{ t('loadingDashboard') }}</p>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 definePageMeta({
   layout: "default",
 });

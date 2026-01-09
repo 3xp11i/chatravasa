@@ -60,19 +60,11 @@
                     </div>
 
                     <!-- Phone Number -->
-                    <div>
-                        <label for="phoneNumber"
-                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Phone Number <span class="text-red-500">*</span>
-                        </label>
-                        <input id="phoneNumber"
-                               v-model="formData.phone"
-                               type="tel"
-                               required
-                               placeholder="e.g. +919876543210 or 9876543210"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use E.164 format (+919876543210) or 10 digits</p>
-                    </div>
+                    <PhoneInput
+                      v-model="formData.phone"
+                      label="Phone Number"
+                      required
+                    />
 
                     <!-- Room -->
                     <div>
@@ -119,10 +111,32 @@
                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Family Phone Number
                         </label>
-                        <input id="familyPhoneNumber"
-                               v-model="formData.family_phone_number"
-                               type="tel"
-                               placeholder="e.g. +919876543210 or 9876543210"
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-300 dark:border-gray-600">
+                                +91
+                            </span>
+                            <input id="familyPhoneNumber"
+                                   v-model="formData.family_phone_number"
+                                   type="tel"
+                                   pattern="[0-9]{10}"
+                                   maxlength="10"
+                                   placeholder="9876543210"
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                        </div>
+                    </div>
+
+                    <!-- Monthly Fee Amount -->
+                    <div>
+                        <label for="monthlyFeeAmount"
+                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Monthly Fee Amount
+                        </label>
+                        <input id="monthlyFeeAmount"
+                               v-model="formData.monthly_fee_amount"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               placeholder="Enter monthly fee amount"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                     </div>
 
@@ -172,7 +186,8 @@ const formData = ref({
     room: '',
     joining_date: '',
     guardian_name: '',
-    family_phone_number: ''
+    family_phone_number: '',
+    monthly_fee_amount: ''
 })
 
 const isSubmitting = ref(false)
@@ -184,16 +199,21 @@ const handleSubmit = async () => {
     statusMessage.value = ''
 
     try {
+        // Normalize phone numbers to +91 format
+        const normalizedPhone = formData.value.phone.startsWith('+91') ? formData.value.phone : `+91${formData.value.phone}`
+        const normalizedFamilyPhone = formData.value.family_phone_number ? (formData.value.family_phone_number.startsWith('+91') ? formData.value.family_phone_number : `+91${formData.value.family_phone_number}`) : null
+
         const response = await $fetch('/api/manage-resident/add-resident', {
             method: 'POST',
             body: {
                 first_name: formData.value.first_name,
                 last_name: formData.value.last_name,
-                phone: formData.value.phone,
+                phone: normalizedPhone,
                 room: formData.value.room,
                 joining_date: formData.value.joining_date || null,
                 guardian_name: formData.value.guardian_name || null,
-                family_phone_number: formData.value.family_phone_number || null,
+                family_phone_number: normalizedFamilyPhone,
+                monthly_fee_amount: formData.value.monthly_fee_amount || null,
                 hostel_slug: hostelSlug
             }
         })
@@ -211,7 +231,8 @@ const handleSubmit = async () => {
             room: '',
             joining_date: '',
             guardian_name: '',
-            family_phone_number: ''
+            family_phone_number: '',
+            monthly_fee_amount: ''
         }
 
         // Close modal after 1.5 seconds

@@ -1,24 +1,24 @@
 <template>
   <div class="add-hostel-container">
-    <h1 class="text-2xl font-bold mb-6">Add New Hostel</h1>
+    <h1 class="text-2xl font-bold mb-6">{{ t('addNewHostel') }}</h1>
     <form class="hostel-form" @submit.prevent="submitForm">
       <div class="form-group">
-        <label for="hostelName">Hostel Name <span class="required">*</span></label>
+        <label for="hostelName">{{ t('hostelName') }} <span class="required">*</span></label>
         <input 
           type="text" 
           id="hostelName" 
           v-model="formData.hostelName" 
-          placeholder="Enter hostel name"
+          :placeholder="t('enterHostelName')"
           required
         />
       </div>
       
       <div class="form-group">
-        <label for="address">Address <span class="required">*</span></label>
+        <label for="address">{{ t('address') }} <span class="required">*</span></label>
         <textarea 
           id="address" 
           v-model="formData.address" 
-          placeholder="Enter complete address"
+          :placeholder="t('enterAddress')"
           rows="3"
           required
         ></textarea>
@@ -26,7 +26,7 @@
       
       <div class="form-row">
         <div class="form-group">
-          <label for="totalRooms">Total Rooms <span class="required">*</span></label>
+          <label for="totalRooms">{{ t("totalRooms") }} <span class="required">*</span></label>
           <input 
             type="number" 
             id="totalRooms" 
@@ -38,38 +38,41 @@
         </div>
         
         <div class="form-group">
-          <label for="availableRooms">Available Rooms</label>
+          <label for="availableRooms">{{ t('availableRooms') }}</label>
           <input 
             type="number" 
             id="availableRooms" 
             v-model.number="formData.availableRooms" 
-            placeholder="Same as total"
+            :placeholder="t('sameAsTotal')"
             min="0"
             :max="formData.totalRooms"
           />
-          <small class="text-gray-500">Leave empty to use total rooms</small>
+          <small class="text-gray-500">{{ t('leaveEmptyTotal') }}</small>
         </div>
       </div>
       
       <div class="form-group">
-        <label for="hostelPhoto">Hostel Photo (Optional)</label>
+        <label for="hostelPhoto">{{ t('hostelPhoto') }}</label>
         <input 
           type="file" 
           id="hostelPhoto" 
           @change="e => formData.hostelPhoto = (e.target as HTMLInputElement)?.files?.[0] ?? null" 
           accept="image/*"
         />
-        <small class="text-gray-500">Upload a photo of the hostel</small>
+        <small class="text-gray-500">{{ t('uploadHostelPhoto') }}</small>
       </div>
       
       <button class="btn-submit" type="submit" :disabled="loading">
-        {{ loading ? 'Adding Hostel...' : 'Add Hostel' }}
+        {{ loading ? t('addingHostel') : t('addHostel') }}
       </button>
     </form>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 import type { Database } from '@/types/database.types';
 
 type HostelInsert = Database['public']['Tables']['hostels']['Insert'];
@@ -98,7 +101,7 @@ const router = useRouter();
 async function submitForm() {
   const isValid = Object.values(valuesValidator.value).every(v => v);
   if (!isValid) {
-    alert('Please fill in all required fields correctly.');
+    alert(t('fillRequiredFields'));
     return;
   }
 
@@ -125,7 +128,7 @@ async function submitForm() {
     });
 
     if (response.success) {
-      alert('Hostel added successfully!');
+      alert(t('hostelAdded'));
       // Reset form
       formData.value = {
         hostelName: '',
@@ -143,7 +146,7 @@ async function submitForm() {
     }
   } catch (error: any) {
     console.error('Error adding hostel:', error);
-    alert(error.data?.statusMessage || 'Failed to add hostel. Please try again.');
+    alert(t('failedAddHostel'));
   } finally {
     loading.value = false;
   }

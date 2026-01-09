@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
 		family_phone_number,
 		room,
 		avatar,
+		monthly_fee_amount,
 	} = body;
 
 	if (!resident_id || !hostel_slug) {
@@ -53,32 +54,51 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// Validate phone number if provided
-	if (phone_number && !/^\d{10}$/.test(phone_number)) {
-		throw createError({ statusCode: 400, statusMessage: "Phone number must be 10 digits" });
+	// Update profiles table (first_name, last_name, phone, avatar)
+	const profilePayload: Database["public"]["Tables"]["profiles"]["Update"] = {};
+	if (first_name !== undefined) profilePayload.first_name = first_name;
+	if (last_name !== undefined) profilePayload.last_name = last_name;
+	if (phone_number !== undefined) profilePayload.phone = phone_number;
+	if (avatar !== undefined) profilePayload.avatar = avatar || null;
+
+	// Only update profiles if there are fields to update
+	if (Object.keys(profilePayload).length > 0) {
+		const { error: profileError } = await client
+			.from("profiles")
+			.update(profilePayload)
+			.eq("id", resident_id);
+
+		if (profileError) {
+			console.error("Profile update error:", profileError);
+			throw createError({ statusCode: 500, statusMessage: "Failed to update profile information" });
+		}
 	}
 
-	const updatePayload: Database["public"]["Tables"]["residents"]["Update"] = {};
-	if (first_name !== undefined) updatePayload.first_name = first_name;
-	if (last_name !== undefined) updatePayload.last_name = last_name;
-	if (phone_number !== undefined) updatePayload.phone_number = phone_number;
-	if (joining_date !== undefined) updatePayload.joining_date = joining_date || null;
-	if (father_name !== undefined) updatePayload.father_name = father_name || null;
-	if (family_phone_number !== undefined) updatePayload.family_phone_number = family_phone_number || null;
-	if (room !== undefined) updatePayload.room = room;
-	if (avatar !== undefined) updatePayload.avatar = avatar || null;
+	// Update residents table (room, joining_date, guardian_name, family_phone_number, monthly_fee_amount)
+	const residentPayload: Database["public"]["Tables"]["residents"]["Update"] = {};
+	if (joining_date !== undefined) residentPayload.joining_date = joining_date || null;
+	if (father_name !== undefined) residentPayload.guardian_name = father_name || null; // Map father_name to guardian_name
+	if (family_phone_number !== undefined) residentPayload.family_phone_number = family_phone_number || null;
+	if (room !== undefined) residentPayload.room = room;
+	if (monthly_fee_amount !== undefined) residentPayload.monthly_fee_amount = monthly_fee_amount || null;
 
-	const { data: updated, error: updateError } = await client
-		.from("residents")
-		.update(updatePayload)
-		.eq("id", resident_id)
-		.eq("hostel_id", hostel.id)
-		.select()
-		.single();
+	// Only update residents if there are fields to update
+	if (Object.keys(residentPayload).length > 0) {
+		const { data: updated, error: updateError } = await client
+			.from("residents")
+			.update(residentPayload)
+			.eq("id", resident_id)
+			.eq("hostel_id", hostel.id)
+			.select()
+			.single();
 
-	if (updateError) {
-		throw createError({ statusCode: 500, statusMessage: "Failed to update resident" });
+		if (updateError) {
+			console.error("Resident update error:", updateError);
+			throw createError({ statusCode: 500, statusMessage: "Failed to update resident information" });
+		}
+
+		return { success: true, data: updated };
 	}
 
-	return { success: true, data: updated };
+	return { success: true };
 });

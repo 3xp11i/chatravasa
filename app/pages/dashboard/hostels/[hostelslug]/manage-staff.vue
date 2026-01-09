@@ -3,8 +3,8 @@
         <!-- Header with Tabs -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Manage Staff</h1>
-                <p class="text-gray-600">Manage staff members and roles for this hostel.</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ t('manageStaff') }}</h1>
+                <p class="text-gray-600">{{ t('manageStaffDesc') }}</p>
             </div>
         </div>
 
@@ -18,7 +18,7 @@
                                 ? 'text-green-600 border-b-2 border-green-600'
                                 : 'text-gray-600 hover:text-gray-800'
                         ]">
-                    Staff Members
+                    {{ t('staffMembers') }}
                 </button>
                 <button @click="activeTab = 'roles'"
                         :class="[
@@ -27,7 +27,7 @@
                                 ? 'text-green-600 border-b-2 border-green-600'
                                 : 'text-gray-600 hover:text-gray-800'
                         ]">
-                    Roles & Permissions
+                    {{ t('rolesPermissions') }}
                 </button>
             </div>
         </div>
@@ -38,7 +38,7 @@
                 <button class="greenBtn flex items-center justify-center"
                         @click="openAddStaffModal">
                     <Icon name="material-symbols:add"
-                          class="text-xl mr-1"></Icon> Add Staff Member
+                          class="text-xl mr-1"></Icon> {{ t('addStaffMember') }}
                 </button>
             </div>
 
@@ -57,23 +57,23 @@
                     </span>
                     <input v-model="searchTerm"
                            type="text"
-                           placeholder="Search by name or phone"
+                           :placeholder="t('searchByNamePhone')"
                            class="w-full outline-none text-gray-800" />
                 </div>
                 <div class="text-sm text-gray-500">
                     {{ searchTerm ? filteredStaffMembers.length : totalStaffMembers }}
-                    {{ searchTerm ? 'found' : 'total' }}
+                    {{ searchTerm ? t('found') : t('total') }}
                 </div>
             </div>
 
             <div v-if="pendingMembers"
-                 class="text-center text-gray-500 py-10">Loading staff members...</div>
+                 class="text-center text-gray-500 py-10">{{ t('loadingStaffMembers') }}</div>
             <div v-else-if="errorMembers"
-                 class="text-center text-red-600 py-10">Failed to load staff members</div>
+                 class="text-center text-red-600 py-10">{{ t('failedLoadStaffMembers') }}</div>
             <div v-else>
                 <div v-if="filteredStaffMembers.length === 0"
                      class="text-center text-gray-500 py-10">
-                    No staff members found.
+                    {{ t('noStaffMembersFound') }}
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,7 +92,7 @@
                                 <p class="text-sm text-gray-600">{{ staffMember.phone }}</p>
                                 <span v-if="staffMember.is_invite"
                                       class="inline-block mt-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                                    Pending
+                                    {{ t('pending') }}
                                 </span>
                                 <span v-else
                                       class="inline-block mt-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
@@ -109,7 +109,7 @@
                     <button @click="goToPage(currentPage - 1)"
                             :disabled="currentPage === 1"
                             class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Previous
+                        {{ t('previous') }}
                     </button>
 
                     <div class="flex gap-1">
@@ -132,7 +132,7 @@
                     <button @click="goToPage(currentPage + 1)"
                             :disabled="currentPage === totalPages"
                             class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Next
+                        {{ t('next') }}
                     </button>
                 </div>
             </div>
@@ -144,18 +144,18 @@
                 <button class="greenBtn flex items-center justify-center"
                         @click="openAddRoleModal">
                     <Icon name="material-symbols:add"
-                          class="text-xl mr-1"></Icon> Create Role
+                          class="text-xl mr-1"></Icon> {{ t('createRole') }}
                 </button>
             </div>
 
             <div v-if="pendingRoles"
-                 class="text-center text-gray-500 py-10">Loading roles...</div>
+                 class="text-center text-gray-500 py-10">{{ t('loadingRoles') }}</div>
             <div v-else-if="errorRoles"
-                 class="text-center text-red-600 py-10">Failed to load roles</div>
+                 class="text-center text-red-600 py-10">{{ t('failedLoadRoles') }}</div>
             <div v-else>
                 <div v-if="roles.length === 0"
                      class="text-center text-gray-500 py-10">
-                    No roles created yet. Create a role to get started.
+                    {{ t('noRolesYet') }}
                 </div>
 
                 <div class="space-y-4">
@@ -165,16 +165,16 @@
                         <div class="flex items-start justify-between mb-4">
                             <div>
                                 <h3 class="text-xl font-semibold text-gray-800">{{ role.title }}</h3>
-                                <p class="text-sm text-gray-500">Created {{ formatDate(role.created_at) }}</p>
+                                <p class="text-sm text-gray-500">{{ t('created') }} {{ formatDate(role.created_at) }}</p>
                             </div>
                             <div class="flex gap-2">
                                 <button @click="openEditRoleModal(role)"
                                         class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                                    Edit
+                                    {{ t('edit') }}
                                 </button>
                                 <button @click="deleteRole(role.id)"
                                         class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
-                                    Delete
+                                    {{ t('delete') }}
                                 </button>
                             </div>
                         </div>
@@ -182,65 +182,65 @@
                         <!-- Permissions Display -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="border border-gray-200 rounded-lg p-3">
-                                <h4 class="font-medium text-gray-700 mb-2">Residents</h4>
+                                <h4 class="font-medium text-gray-700 mb-2">{{ t('residents') }}</h4>
                                 <div class="space-y-1 text-sm">
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.view_residents ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.view_residents ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.view_residents ? 'text-gray-700' : 'text-gray-400'">View</span>
+                                        <span :class="role.view_residents ? 'text-gray-700' : 'text-gray-400'">{{ t('view') }}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.manage_residents ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.manage_residents ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.manage_residents ? 'text-gray-700' : 'text-gray-400'">Manage</span>
+                                        <span :class="role.manage_residents ? 'text-gray-700' : 'text-gray-400'">{{ t('manage') }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="border border-gray-200 rounded-lg p-3">
-                                <h4 class="font-medium text-gray-700 mb-2">Meals</h4>
+                                <h4 class="font-medium text-gray-700 mb-2">{{ t('meals') }}</h4>
                                 <div class="space-y-1 text-sm">
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.view_meals ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.view_meals ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.view_meals ? 'text-gray-700' : 'text-gray-400'">View</span>
+                                        <span :class="role.view_meals ? 'text-gray-700' : 'text-gray-400'">{{ t('view') }}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.manage_meals ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.manage_meals ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.manage_meals ? 'text-gray-700' : 'text-gray-400'">Manage</span>
+                                        <span :class="role.manage_meals ? 'text-gray-700' : 'text-gray-400'">{{ t('manage') }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="border border-gray-200 rounded-lg p-3">
-                                <h4 class="font-medium text-gray-700 mb-2">Fees</h4>
+                                <h4 class="font-medium text-gray-700 mb-2">{{ t('fees') }}</h4>
                                 <div class="space-y-1 text-sm">
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.view_fees ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.view_fees ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.view_fees ? 'text-gray-700' : 'text-gray-400'">View</span>
+                                        <span :class="role.view_fees ? 'text-gray-700' : 'text-gray-400'">{{ t('view') }}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.manage_fees ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.manage_fees ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.manage_fees ? 'text-gray-700' : 'text-gray-400'">Manage</span>
+                                        <span :class="role.manage_fees ? 'text-gray-700' : 'text-gray-400'">{{ t('manage') }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="border border-gray-200 rounded-lg p-3">
-                                <h4 class="font-medium text-gray-700 mb-2">Complaints</h4>
+                                <h4 class="font-medium text-gray-700 mb-2">{{ t('complaints') }}</h4>
                                 <div class="space-y-1 text-sm">
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.view_complaints ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.view_complaints ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.view_complaints ? 'text-gray-700' : 'text-gray-400'">View</span>
+                                        <span :class="role.view_complaints ? 'text-gray-700' : 'text-gray-400'">{{ t('view') }}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <Icon :name="role.manage_complaints ? 'mdi:check-circle' : 'mdi:close-circle'"
                                               :class="role.manage_complaints ? 'text-green-600' : 'text-gray-400'" />
-                                        <span :class="role.manage_complaints ? 'text-gray-700' : 'text-gray-400'">Manage</span>
+                                        <span :class="role.manage_complaints ? 'text-gray-700' : 'text-gray-400'">{{ t('manage') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -260,6 +260,8 @@ import AddStaffMemberModal from '~/components/modals/AddStaffMemberModal.vue'
 import StaffMemberDetailsModal from '~/components/modals/StaffMemberDetailsModal.vue'
 import AddEditRoleModal from '~/components/modals/AddEditRoleModal.vue'
 import placeholderAvatar from '~/assets/images/avatar-placeholder.svg'
+
+const { t } = useI18n()
 
 type StaffMember = {
     id: string
@@ -445,7 +447,7 @@ const openEditRoleModal = (role: any) => {
 }
 
 const deleteRole = async (roleId: string) => {
-    if (!confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
+    if (!confirm(t('confirmDeleteRole'))) {
         return
     }
 

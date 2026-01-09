@@ -3,12 +3,12 @@
 
     <h1 class="text-center">
       <span v-if="loading && !hostelName"
-            class="inline-block animate-pulse rounded text-sm ">Loading...</span>
+            class="inline-block animate-pulse rounded text-sm ">{{ t('loading') }}</span>
       <span v-else>{{ hostelName }} 🏡</span>
     </h1>
 
     <NuxtLink v-if="isAdmin" :to="`/dashboard/hostels/${hostelSlug}/edit-hostel`" class="greenBtn flex items-center active:text-white">
-     <Icon name="material-symbols:edit" class="text-xl mr-1"></Icon> Edit Hostel</NuxtLink>
+     <Icon name="material-symbols:edit" class="text-xl mr-1"></Icon> {{ t('editHostel') }}</NuxtLink>
 
 
     <div class="page_links_container w-full">
@@ -17,29 +17,29 @@
             <NuxtLink v-if="isAdmin || canViewResidents" :to="`/dashboard/hostels/${hostelSlug}/manage-residents`"
                 class="page_links">
         <Icon name="ic:baseline-people" class="text-2xl mr-2"></Icon>
-        Residents
+        {{ t('residents') }}
       </NuxtLink>
             <NuxtLink v-if="isAdmin || canViewFees" :to="`/dashboard/hostels/${hostelSlug}/manage-fees`"
                 class="page_links">
         <Icon name="material-symbols:currency-rupee" class="text-2xl mr-2"></Icon>
-        Fees
+        {{ t('fees') }}
       </NuxtLink>
             <NuxtLink v-if="isAdmin || canViewComplaints" :to="`/dashboard/hostels/${hostelSlug}/manage-complaints`"
                 class="page_links">
         <Icon name="material-symbols:problem" class="text-2xl mr-2"></Icon>
-                Complaints</NuxtLink>
+                {{ t('complaints') }}</NuxtLink>
             <NuxtLink v-if="isAdmin || canViewMeals" :to="`/dashboard/hostels/${hostelSlug}/manage-meals`"
                 class="page_links">
         <Icon name="material-symbols:calendar-meal-2" class="text-2xl mr-2"></Icon>
-            Meals</NuxtLink>
+            {{ t("meals") }}</NuxtLink>
             <NuxtLink v-if="isAdmin" :to="`/dashboard/hostels/${hostelSlug}/manage-staff`"
                 class="page_links">
         <Icon name="streamline-plump:office-worker-solid" class="text-2xl mr-2"></Icon>
-                Staff</NuxtLink>
+                {{ t('staff') }}</NuxtLink>
             <NuxtLink v-if="isAdmin" :to="`/dashboard/hostels/${hostelSlug}/manage-finances`"
                 class="page_links">
         <Icon name="streamline-ultimate:accounting-calculator-1" class="text-2xl mr-2"></Icon>
-                Finances</NuxtLink>
+                {{ t('finances') }}</NuxtLink>
 
     </div>
 
@@ -47,6 +47,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 import type { Database } from '@/types/database.types';
 
 

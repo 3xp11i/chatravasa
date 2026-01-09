@@ -33,36 +33,45 @@
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
                     </svg>
-                    <span>Edit Profile</span>
+                    <span>{{ t('editProfile') }}</span>
                 </NuxtLink>
                 <NuxtLink v-if="isAdmin" to="/dashboard" @click="close" class="sidebar-link">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                     </svg>
-                    <span>Dashboard</span>
+                    <span>{{ t('dashboard') }}</span>
                 </NuxtLink>
                 <NuxtLink v-if="!isAdmin" to="/resident" @click="close" class="sidebar-link">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                     </svg>
-                    <span>Home</span>
+                    <span>{{ t('home') }}</span>
                 </NuxtLink>
             </div>
 
             <div class="bottomSection flex flex-col gap-2 mt-auto mb-8 px-4">
                 <div class="border-t border-gray-200 mb-4"></div>
+
+                <!-- Change Language Option -->
+
+                <select @change="changeLocale" :value="locale" class="sidebar-link">
+                    <option value="en">{{ t('english') }}</option>
+                    <option value="hi">{{ t('hindi') }}</option>
+                </select>
+
+
                 <NuxtLink to="/contact" @click="close" class="sidebar-link">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                     </svg>
-                    <span>Contact Us</span>
+                    <span>{{ t('contactUs') }}</span>
                 </NuxtLink>
                 <button class="sidebar-link-danger" @click="logout">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
                     </svg>
-                    <span>Logout</span>
+                    <span>{{ t('logout') }}</span>
                 </button>
             </div>
         </div>
@@ -72,6 +81,9 @@
 <script lang="ts" setup>
 import { useSwipeableSidebar } from '@/composables/useSwipeableSidebar';
 import defaultAvatar from '~/assets/images/profile.jpg';
+import { useI18n } from 'vue-i18n';
+
+const { locale, setLocale, t } = useI18n();
 
 const { sideBarOpen } = useSidebar();
 const sideBarRef = useTemplateRef('sideBarRef');
@@ -93,9 +105,9 @@ const displayName = ref('');
 const fullName = computed(() => displayName.value || userName.value || 'User');
 
 const userRole = computed(() => {
-    if (isAdmin.value) return 'Admin';
-    if (isResident.value) return 'Resident';
-    return 'Guest';
+    if (isAdmin.value) return t('admin');
+    if (isResident.value) return t('resident');
+    return t('guest');
 });
 
 const avatarUrl = computed(() => {
@@ -140,6 +152,11 @@ const logout = async () => {
     close();
     // Optionally redirect to home or login page
     navigateTo('/');
+};
+
+const changeLocale = (event) => {
+    setLocale(event.target.value);
+    close();
 };
 
 

@@ -2,19 +2,19 @@
     <div class="w-full max-w-5xl mx-auto px-4 py-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 items-end">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Manage Residents</h1>
-                <p class="text-gray-600">Search, view, edit, or remove residents of this hostel.</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ t('manageResidents') }}</h1>
+                <p class="text-gray-600">{{ t('manageResidentsDesc') }}</p>
             </div>
             <!-- Add Resident Button - Only show if user can manage residents -->
             <button v-if="canAddResident"
                     class="greenBtn flex items-center justify-center w-full"
                     @click="openAddResidentModal">
                 <Icon name="material-symbols:add"
-                      class="text-xl mr-1"></Icon> Add Resident
+                      class="text-xl mr-1"></Icon> {{ t('addResident') }}
             </button>
             <!-- Restricted Message -->
             <div v-else class="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p class="text-sm text-yellow-800">You don't have permission to add residents</p>
+                <p class="text-sm text-yellow-800">{{ t('noPermissionAddResidents') }}</p>
             </div>
         </div>
 
@@ -33,23 +33,23 @@
                 </span>
                 <input v-model="searchTerm"
                        type="text"
-                       placeholder="Search by name, phone, or room"
+                       :placeholder="t('searchByNamePhoneRoom')"
                        class="w-full outline-none text-gray-800" />
             </div>
             <div class="text-sm text-gray-500">
-                {{ searchTerm ? filteredResidents.length : totalResidents }}
-                {{ searchTerm ? 'found' : 'total' }}
+                {{ localizeNumber(searchTerm ? filteredResidents.length : totalResidents) }}
+                {{ searchTerm ? t('found') : t('total') }}
             </div>
         </div>
 
         <div v-if="pending"
-             class="text-center text-gray-500 py-10">Loading residents...</div>
+             class="text-center text-gray-500 py-10">{{ t('loadingResidents') }}</div>
         <div v-else-if="error"
-             class="text-center text-red-600 py-10">Failed to load residents</div>
+             class="text-center text-red-600 py-10">{{ t('failedLoadResidents') }}</div>
         <div v-else>
             <div v-if="filteredResidents.length === 0"
                  class="text-center text-gray-500 py-10">
-                No residents found.
+                {{ t('noResidentsFound') }}
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -62,7 +62,7 @@
                     <div class="flex items-center gap-3">
                         <div
                              class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-semibold text-sm">
-                            {{ searchTerm ? index + 1 : (currentPage - 1) * pageSize + index + 1 }}
+                            {{ localizeNumber(searchTerm ? index + 1 : (currentPage - 1) * pageSize + index + 1) }}
                         </div>
                         <img :src="resident.avatar || placeholderAvatar"
                              class="h-14 w-14 rounded-full object-cover border border-gray-200"
@@ -74,12 +74,13 @@
                             }}
                             </div>
                         </div>
-                        <div class="text-sm text-gray-600">Room {{ resident.room || '—' }}</div>
-                        <div class="text-xs text-gray-500">{{ resident.phone_number }}</div>
+                        <div class="text-sm text-gray-600">{{ t('room') }} {{ resident.room || t('noRoom') }}</div>
+                        <div class="text-xs text-gray-500">{{ localizeNumber(stripPhonePrefix(resident.phone_number)) }}</div>
+                        <div v-if="resident.monthly_fee_amount" class="text-xs text-green-600 font-medium">₹{{ localizeNumber(resident.monthly_fee_amount) }}/{{ t('month') }}</div>
                     </div>
 
                     <span v-if="resident.is_invite"
-                          class="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">Invited</span>
+                          class="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">{{ t('invited') }}</span>
 
                     <Icon name="material-symbols:chevron-right"
                           class="text-gray-400 text-2xl" />
@@ -115,7 +116,7 @@
                                     ? 'bg-green-600 text-white border-green-600'
                                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                             ]">
-                        {{ page }}
+                        {{ localizeNumber(page) }}
                     </button>
                 </div>
 
@@ -145,6 +146,24 @@ import AddResidentModal from '~/components/modals/AddResidentModal.vue'
 import ResidentDetailsModal from '~/components/modals/ResidentDetailsModal.vue'
 import placeholderAvatar from '~/assets/images/avatar-placeholder.svg'
 
+const { t } = useI18n()
+const { localizeNumber } = useNumberLocalization()
+
+// Helper to extract and normalize phone numbers for display (always returns 10 digits)
+const stripPhonePrefix = (phone: string | null) => {
+    if (!phone) return ''
+    // Remove all non-digit characters except the leading +
+    const cleaned = phone.replace(/[^\d+]/g, '')
+    // Remove the country code if present (+91 or 91)
+    if (cleaned.startsWith('+91')) {
+        return cleaned.substring(3)
+    } else if (cleaned.startsWith('91')) {
+        return cleaned.substring(2)
+    }
+    // Return last 10 digits as fallback (handles cases where format is mixed)
+    return cleaned.slice(-10)
+}
+
 type Resident = {
     id: string
     first_name: string
@@ -156,6 +175,7 @@ type Resident = {
     family_phone_number: string | null
     avatar: string | null
     is_invite: boolean
+    monthly_fee_amount: string | null
 }
 
 const route = useRoute()
@@ -206,7 +226,7 @@ const filteredResidents = computed(() => {
         const fullName = `${r.first_name} ${r.last_name}`.toLowerCase()
         return (
             fullName.includes(term) ||
-            r.phone_number.toLowerCase().includes(term) ||
+            stripPhonePrefix(r.phone_number).toLowerCase().includes(term) ||
             (r.room || '').toLowerCase().includes(term)
         )
     })

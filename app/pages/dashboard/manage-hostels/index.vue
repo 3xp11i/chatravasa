@@ -1,22 +1,22 @@
 <template>
   <div class="manage-hostels-container">
     <div class="header">
-      <h1 class="text-3xl font-bold">Manage Your Hostels</h1>
+      <h1 class="text-3xl font-bold">{{ t('manageYourHostels') }}</h1>
       <!-- Staff should not see Add Hostel -->
       <NuxtLink v-if="apiIsAdmin" to="/dashboard/add-hostel" class="greenBtn">
-        + Add Hostel
+        {{ t('addHostel') }}
       </NuxtLink>
     </div>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="loading-state">
-      <p>Loading your hostels...</p>
+      <p>{{ t('loadingHostels') }}</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-state">
-      <p class="text-red-600">{{ error }}</p>
-      <button @click="fetchHostels()" class="btn-secondary mt-4">Try Again</button>
+      <p class="text-red-600">{{ t('failedLoadHostels') }}</p>
+      <button @click="fetchHostels()" class="btn-secondary mt-4">{{ t('tryAgain') }}</button>
     </div>
 
     <!-- Empty State -->
@@ -25,12 +25,12 @@
         <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
         </svg>
-        <h2 class="text-xl font-semibold mt-4">No hostels yet</h2>
-        <p v-if="apiIsAdmin" class="text-gray-600 mt-2">Get started by adding your first hostel</p>
+        <h2 class="text-xl font-semibold mt-4">{{ t('noHostelsYet') }}</h2>
+        <p v-if="apiIsAdmin" class="text-gray-600 mt-2">{{ t('getStartedAddHostel') }}</p>
         <NuxtLink v-if="apiIsAdmin" to="/dashboard/add-hostel" class="btn-primary mt-6 inline-block">
-          Add Your First Hostel
+          {{ t('addFirstHostel') }}
         </NuxtLink>
-        <p v-else class="text-gray-600 mt-2">You don't have any hostels assigned yet.</p>
+        <p v-else class="text-gray-600 mt-2">{{ t('noHostelsAssigned') }}</p>
       </div>
     </div>
 
@@ -56,23 +56,23 @@
               <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
               </svg>
-              <span>Total Rooms: {{ hostel.total_rooms }}</span>
+              <span>{{ t('totalRooms') }}: {{ hostel.total_rooms }}</span>
             </div>
             
             <div v-if="apiIsAdmin" class="info-row">
               <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
-              <span>Available: {{ hostel.available_rooms ?? hostel.total_rooms }}</span>
+              <span>{{ t('available') }}: {{ hostel.available_rooms ?? hostel.total_rooms }}</span>
             </div>
           </div>
 
           <div class="card-footer">
             <NuxtLink :to="`/dashboard/hostels/${hostel.hostel_slug}`" class="btn-view">
-              Open Hostel Page
+              {{ t('openHostelPage') }}
             </NuxtLink>
             <button v-if="apiIsAdmin" @click="deleteHostel(hostel.id)" class="btn-delete">
-              Delete
+              {{ t('delete') }}
             </button>
           </div>
         </div>
@@ -86,23 +86,26 @@
         :disabled="pagination.page === 1"
         class="pagination-btn"
       >
-        Previous
+        {{ t('previous') }}
       </button>
       <span class="pagination-info">
-        Page {{ pagination.page }} of {{ pagination.totalPages }}
+        {{ t('pageOfTotal', { page: pagination.page, total: pagination.totalPages }) }}
       </span>
       <button 
         @click="changePage(pagination.page + 1)" 
         :disabled="pagination.page === pagination.totalPages"
         class="pagination-btn"
       >
-        Next
+        {{ t('next') }}
       </button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 import type { Database } from '@/types/database.types';
 
 type Hostel = Database['public']['Tables']['hostels']['Row'];
@@ -183,7 +186,7 @@ onMounted(async () => {
 });
 
 async function deleteHostel(hostelId: number) {
-  if (!confirm('Are you sure you want to delete this hostel?')) {
+  if (!confirm(t('confirmDeleteHostel'))) {
     return;
   }
 
@@ -194,12 +197,12 @@ async function deleteHostel(hostelId: number) {
     });
 
     if (response.success) {
-      alert('Hostel deleted successfully');
+      alert(t('hostelDeleted'));
       await fetchHostels();
     }
   } catch (err: any) {
     console.error('Error deleting hostel:', err);
-    alert(err.data?.statusMessage || 'Failed to delete hostel');
+    alert(t('failedDeleteHostel'));
   }
 }
 

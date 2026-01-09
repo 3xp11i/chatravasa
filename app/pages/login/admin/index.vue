@@ -6,19 +6,12 @@
         <p class="text-center text-sm text-text-muted mb-5 md:mb-6">Sign in securely with your phone number</p>
 
         <form class="space-y-4" @submit.prevent="step === 'request' ? requestOtp() : verifyOtp()">
-          <div class="space-y-2">
-            <label for="phone" class="font-medium">Phone Number</label>
-            <input
-              id="phone"
-              type="tel"
-              inputmode="tel"
-              autocomplete="tel"
-              placeholder="e.g. +91 98765 43210"
-              v-model="phone"
-              :disabled="loading || step === 'verify'"
-            />
-            <p class="text-xs text-text-muted">Use full country code (E.164), e.g. +91...</p>
-          </div>
+          <PhoneInput
+            v-model="phone"
+            label="Phone Number"
+            :disabled="loading || step === 'verify'"
+            required
+          />
 
           <div v-if="step === 'verify'" class="space-y-2">
             <label for="otp" class="font-medium">OTP Code</label>
@@ -73,8 +66,8 @@ definePageMeta({
 
 const supabase = useSupabaseClient();
 
-const phone = ref('+919170147764');
-const otp = ref('123456');
+const phone = ref('');
+const otp = ref('');
 const step = ref<'request' | 'verify'>('request');
 const loading = ref(false);
 const redirecting = ref(false);
@@ -83,7 +76,10 @@ const errorMessage = ref('');
 const resendTimer = ref(0);
 let countdown: ReturnType<typeof setInterval> | null = null;
 
-const normalizedPhone = computed(() => phone.value.trim());
+const normalizedPhone = computed(() => {
+  const digits = phone.value.trim();
+  return digits ? `+91${digits}` : '';
+});
 
 function startResendTimer(seconds = 30) {
   resendTimer.value = seconds;
@@ -98,8 +94,8 @@ function startResendTimer(seconds = 30) {
 }
 
 async function requestOtp(isResend = false) {
-  if (!normalizedPhone.value.startsWith('+') || normalizedPhone.value.length < 8) {
-    errorMessage.value = 'Enter phone with country code, e.g. +919876543210';
+  if (!phone.value || phone.value.length < 10) {
+    errorMessage.value = 'Enter a valid 10 digit phone number.';
     return;
   }
 

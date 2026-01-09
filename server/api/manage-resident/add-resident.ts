@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
 		// Parse the request body
 		const body = await readBody(event);
-		const { first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, hostel_slug } = body;
+		const { first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, monthly_fee_amount, hostel_slug } = body;
 
 		// Validate required fields
 		if (!first_name || !last_name || !phone || !room || !hostel_slug) {
@@ -24,12 +24,12 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 
-		// Validate phone number format (E.164 or 10 digits)
-		const isValidPhone = /^\+\d{1,15}$/.test(phone) || /^\d{10}$/.test(phone);
+		// Validate phone number format - should be +91 followed by 10 digits
+		const isValidPhone = /^\+91\d{10}$/.test(phone);
 		if (!isValidPhone) {
 			throw createError({
 				statusCode: 400,
-				statusMessage: "Invalid phone number format. Use E.164 format (e.g., +919876543210) or 10 digits",
+				statusMessage: "Invalid phone number format. Expected format: +91xxxxxxxxxx",
 			});
 		}
 
@@ -69,11 +69,8 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
-		// Normalize phone number to E.164 format if needed
-		let normalizedPhone = phone;
-		if (/^\d{10}$/.test(phone)) {
-			normalizedPhone = "+91" + phone; // Assuming Indian phone numbers
-		}
+		// Phone is already normalized to +91 format from frontend
+		const normalizedPhone = phone;
 
 		// Check if this phone already exists in resident_invites for this hostel
 		const { data: existingInvite } = await client
@@ -132,6 +129,7 @@ export default defineEventHandler(async (event) => {
 				joining_date: joining_date || null,
 				guardian_name: guardian_name || null,
 				family_phone_number: family_phone_number || null,
+				monthly_fee_amount: monthly_fee_amount || null,
 			})
 			.select()
 			.single();

@@ -56,7 +56,8 @@ export default defineEventHandler(async (event) => {
 			guardian_name,
 			family_phone_number,
 			created_at,
-			profiles!inner(first_name, last_name, phone, avatar)
+			profiles!inner(first_name, last_name, phone, avatar),
+			hostel_resident_fee_info(fee_category_id, discount_amount, hostel_fee_categories(amount))
 		`)
 		.eq("hostel_id", hostel.id);
 
@@ -67,7 +68,7 @@ export default defineEventHandler(async (event) => {
 	// RLS policies handle access - staff with manage_residents can see invites
 	const { data: invites, error: invitesError } = await client
 		.from("resident_invites")
-		.select("id, first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, created_at")
+		.select("id, first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, monthly_fee_amount, created_at")
 		.eq("hostel_id", hostel.id);
 
 	if (invitesError) {
@@ -75,19 +76,31 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Transform residents
-	const transformedResidents = (residents || []).map(r => ({
-		id: r.id,
-		first_name: r.profiles.first_name,
-		last_name: r.profiles.last_name,
-		phone_number: r.profiles.phone,
-		avatar: r.profiles.avatar,
-		room: r.room,
-		joining_date: r.joining_date,
-		father_name: r.guardian_name,
-		family_phone_number: r.family_phone_number,
-		created_at: r.created_at,
-		is_invite: false,
-	}));
+	const transformedResidents = (residents || []).map((r: any) => {
+		// Extract monthly_fee_amount from the fee info relationship
+		let monthlyFeeAmount: string | null = null;
+		if (r.hostel_resident_fee_info && r.hostel_resident_fee_info.length > 0) {
+			const feeInfo = r.hostel_resident_fee_info[0];
+			if (feeInfo.hostel_fee_categories && feeInfo.hostel_fee_categories.amount) {
+				monthlyFeeAmount = feeInfo.hostel_fee_categories.amount;
+			}
+		}
+		
+		return {
+			id: r.id,
+			first_name: r.profiles.first_name,
+			last_name: r.profiles.last_name,
+			phone_number: r.profiles.phone,
+			avatar: r.profiles.avatar,
+			room: r.room,
+			joining_date: r.joining_date,
+			father_name: r.guardian_name,
+			family_phone_number: r.family_phone_number,
+			monthly_fee_amount: monthlyFeeAmount,
+			created_at: r.created_at,
+			is_invite: false,
+		};
+	});
 
 	// Transform resident invites
 	const transformedInvites = (invites || []).map(i => ({
@@ -100,6 +113,7 @@ export default defineEventHandler(async (event) => {
 		joining_date: i.joining_date,
 		father_name: i.guardian_name,
 		family_phone_number: i.family_phone_number,
+		monthly_fee_amount: i.monthly_fee_amount,
 		created_at: i.created_at,
 		is_invite: true,
 	}));

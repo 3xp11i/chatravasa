@@ -29,14 +29,11 @@
             </div>
 
             <!-- Phone Number -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input v-model="formData.phone"
-                       type="tel"
-                       placeholder="Enter phone number"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                       required />
-            </div>
+            <PhoneInput
+              v-model="formData.phone"
+              label="Phone Number"
+              required
+            />
 
             <!-- Role Selection -->
             <div>
@@ -105,10 +102,16 @@ const handleSubmit = async () => {
     error.value = ''
 
     try {
+        // Convert phone to full format if it's just digits
+        const fullPhone = formData.phone.startsWith('+91') ? formData.phone : `+91${formData.phone}`
+        
         await $fetch('/api/manage-staff/add-staff-member', {
             method: 'POST',
             body: {
-                ...formData,
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                phone: fullPhone,
+                role_id: formData.role_id,
                 hostel_slug: props.hostelSlug
             }
         })
