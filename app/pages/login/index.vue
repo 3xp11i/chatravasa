@@ -92,33 +92,108 @@
 const showInstallButton = ref(false);
 let deferredPrompt: any = null;
 
-onMounted(() => {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallButton.value = true;
-    console.log("showInstallButton", showInstallButton.value);
-    
-  });
+const checkIfInstalled = () => {
+  // Check if app is running in standalone mode (installed)
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    return true;
+  }
+  
+  // Check if running as PWA on iOS
+  if ((window.navigator as any).standalone === true) {
+    return true;
+  }
+  
+  return false;
+}
 
-  window.addEventListener('appinstalled', () => {
-    showInstallButton.value = false;
-    deferredPrompt = null;
-  });
+const handleBeforeInstallPrompt = (e: any) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton.value = true;
+  console.log('Install prompt available, showing button');
+};
+
+const handleAppInstalled = () => {
+  showInstallButton.value = false;
+  deferredPrompt = null;
+  console.log('App installed successfully');
+};
+
+onMounted(async () => {
+  // Don't show if already installed
+  if (checkIfInstalled()) {
+    console.log('App is already installed');
+    return;
+  }
+
+  // Check if browser supports installation
+  if (!window.hasOwnProperty('onbeforeinstallprompt')) {
+    console.log('Browser does not support PWA installation');
+    return;
+  }
+
+  // Set up event listeners
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  window.addEventListener('appinstalled', handleAppInstalled);
+
+  // Show a fallback button after a short delay if prompt hasn't fired
+  // This helps in cases where the event was consumed earlier
+  setTimeout(() => {
+    if (!deferredPrompt && !checkIfInstalled()) {
+      // Show button even without deferred prompt for manual installation guidance
+      showInstallButton.value = true;
+      console.log('Showing fallback install button');
+    }
+  }, 2000);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  window.removeEventListener('appinstalled', handleAppInstalled);
 });
 
 async function installPWA() {
-  if (!deferredPrompt) return;
-  
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  
-  if (outcome === 'accepted') {
-    console.log('User accepted the install prompt');
+  if (deferredPrompt) {
+    // Use the native install prompt if available
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      
+      deferredPrompt = null;
+      showInstallButton.value = false;
+    } catch (error) {
+      console.error('Error showing install prompt:', error);
+    }
+  } else {
+    // Fallback: Show manual installation instructions
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    const isEdge = /Edg/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
+    let instructions = 'To install this app:\n\n';
+    
+    if (isChrome || isEdge) {
+      instructions += '1. Click the menu (⋮) in the top-right corner\n';
+      instructions += '2. Select "Install app" or "Install Chatravasa"\n';
+      instructions += '3. Follow the prompts to install';
+    } else if (isSafari) {
+      instructions += '1. Tap the Share button\n';
+      instructions += '2. Scroll down and tap "Add to Home Screen"\n';
+      instructions += '3. Tap "Add" to install';
+    } else {
+      instructions += '1. Open your browser menu\n';
+      instructions += '2. Look for "Install app" or "Add to Home Screen"\n';
+      instructions += '3. Follow the prompts to install';
+    }
+    
+    alert(instructions);
   }
-  
-  deferredPrompt = null;
-  showInstallButton.value = false;
 }
 
 </script>
