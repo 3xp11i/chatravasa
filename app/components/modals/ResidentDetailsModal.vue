@@ -112,17 +112,6 @@
                            :href="`tel:${originalFamilyPhoneNumber}`"
                            class="mt-1 text-gray-900 hover:underline cursor-pointer">{{ familyPhoneNumberDisplay }}</a>
                     </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-600">Monthly Fee Amount</label>
-                        <input v-if="isEditing"
-                               v-model="form.monthly_fee_amount"
-                               type="number"
-                               min="0"
-                               step="0.01"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
-                        <p v-else
-                           class="mt-1 text-gray-900">{{ form.monthly_fee_amount ? `₹${form.monthly_fee_amount}` : '—' }}</p>
-                    </div>
                 </div>
 
                 <div v-if="statusMessage"
@@ -177,7 +166,6 @@ type Resident = {
     family_phone_number: string | null
     avatar: string | null
     is_invite: boolean
-    monthly_fee_amount: string | null
 }
 
 const props = defineProps<{ resident: Resident; hostelSlug: string }>()
@@ -211,7 +199,6 @@ const form = reactive({
     family_phone_number: props.resident.family_phone_number || '',
     family_phone_number_display: stripPhonePrefix(props.resident.family_phone_number),
     avatar: props.resident.avatar || null,
-    monthly_fee_amount: props.resident.monthly_fee_amount || '',
 })
 
 // Computed properties for displaying phone numbers
@@ -254,7 +241,7 @@ const saveChanges = async () => {
                 father_name: form.father_name || null,
                 family_phone_number: normalizedFamilyPhone,
                 avatar: form.avatar || null,
-                monthly_fee_amount: form.monthly_fee_amount || null,
+                is_invite: props.resident.is_invite,
             },
         })
         statusType.value = 'success'
@@ -279,6 +266,7 @@ const confirmDelete = async () => {
             body: {
                 resident_id: props.resident.id,
                 hostel_slug: props.hostelSlug,
+                is_invite: props.resident.is_invite,
             },
         })
         statusType.value = 'success'
@@ -306,6 +294,5 @@ const resetForm = () => {
     form.family_phone_number = props.resident.family_phone_number || ''
     form.family_phone_number_display = stripPhonePrefix(props.resident.family_phone_number)
     form.avatar = props.resident.avatar || null
-    form.monthly_fee_amount = props.resident.monthly_fee_amount || ''
 }
 </script>

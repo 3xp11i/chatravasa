@@ -18,6 +18,35 @@
             </div>
         </div>
 
+        <!-- Sort and Filter Controls -->
+        <div class="bg-white rounded-xl shadow p-4 mb-4">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <!-- Filter Dropdown -->
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ t('filter') }}</label>
+                    <select v-model="filterBy"
+                            @change="currentPage = 1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                        <option value="all">{{ t('allResidents') }}</option>
+                        <option value="current">{{ t('currentResidents') }}</option>
+                        <option value="invited">{{ t('invitedResidents') }}</option>
+                    </select>
+                </div>
+                
+                <!-- Sort Dropdown -->
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ t('sortBy') }}</label>
+                    <select v-model="sortBy"
+                            @change="currentPage = 1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                        <option value="default">{{ t('defaultSort') }}</option>
+                        <option value="timestamp">{{ t('newestFirst') }}</option>
+                        <option value="name">{{ t('alphabetical') }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white rounded-xl shadow p-4 mb-4 flex items-center gap-3">
             <div class="flex-1 flex items-center gap-2">
                 <span class="text-gray-400">
@@ -76,7 +105,6 @@
                         </div>
                         <div class="text-sm text-gray-600">{{ t('room') }} {{ resident.room || t('noRoom') }}</div>
                         <div class="text-xs text-gray-500">{{ localizeNumber(stripPhonePrefix(resident.phone_number)) }}</div>
-                        <div v-if="resident.monthly_fee_amount" class="text-xs text-green-600 font-medium">₹{{ localizeNumber(resident.monthly_fee_amount) }}/{{ t('month') }}</div>
                     </div>
 
                     <span v-if="resident.is_invite"
@@ -146,6 +174,7 @@ import AddResidentModal from '~/components/modals/AddResidentModal.vue'
 import ResidentDetailsModal from '~/components/modals/ResidentDetailsModal.vue'
 import placeholderAvatar from '~/assets/images/avatar-placeholder.svg'
 
+
 const { t } = useI18n()
 const { localizeNumber } = useNumberLocalization()
 
@@ -175,7 +204,6 @@ type Resident = {
     family_phone_number: string | null
     avatar: string | null
     is_invite: boolean
-    monthly_fee_amount: string | null
 }
 
 const route = useRoute()
@@ -193,20 +221,24 @@ const canAddResident = computed(() => isAdmin.value || canManageForHostel(hostel
 
 const searchTerm = ref('')
 const currentPage = ref(navigationStore.getLastPage(pageKey.value))
+const sortBy = ref<'default' | 'timestamp' | 'name'>('default')
+const filterBy = ref<'all' | 'current' | 'invited'>('all')
 
 // useAsyncData properly caches in SPA mode
 
 const { data: apiResponse, pending, error, refresh } = useAsyncData(
-    () => `residents-${hostelSlug}-page-${currentPage.value}`,
+    () => `residents-${hostelSlug}-page-${currentPage.value}-sort-${sortBy.value}-filter-${filterBy.value}`,
     () => $fetch('/api/manage-resident/get-residents', {
         query: {
             hostel_slug: hostelSlug,
             limit: pageSize,
-            offset: (currentPage.value - 1) * pageSize
+            offset: (currentPage.value - 1) * pageSize,
+            sort_by: sortBy.value,
+            filter_by: filterBy.value
         }
     }),
     {
-        watch: [currentPage],
+        watch: [currentPage, sortBy, filterBy],
         getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
     }
 )

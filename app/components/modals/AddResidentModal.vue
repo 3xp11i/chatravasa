@@ -125,21 +125,6 @@
                         </div>
                     </div>
 
-                    <!-- Monthly Fee Amount -->
-                    <div>
-                        <label for="monthlyFeeAmount"
-                               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Monthly Fee Amount
-                        </label>
-                        <input id="monthlyFeeAmount"
-                               v-model="formData.monthly_fee_amount"
-                               type="number"
-                               min="0"
-                               step="0.01"
-                               placeholder="Enter monthly fee amount"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-                    </div>
-
                 </div>
 
                 <!-- Status Message -->
@@ -186,8 +171,7 @@ const formData = ref({
     room: '',
     joining_date: '',
     guardian_name: '',
-    family_phone_number: '',
-    monthly_fee_amount: ''
+    family_phone_number: ''
 })
 
 const isSubmitting = ref(false)
@@ -213,7 +197,6 @@ const handleSubmit = async () => {
                 joining_date: formData.value.joining_date || null,
                 guardian_name: formData.value.guardian_name || null,
                 family_phone_number: normalizedFamilyPhone,
-                monthly_fee_amount: formData.value.monthly_fee_amount || null,
                 hostel_slug: hostelSlug
             }
         })
@@ -231,8 +214,7 @@ const handleSubmit = async () => {
             room: '',
             joining_date: '',
             guardian_name: '',
-            family_phone_number: '',
-            monthly_fee_amount: ''
+            family_phone_number: ''
         }
 
         // Close modal after 1.5 seconds

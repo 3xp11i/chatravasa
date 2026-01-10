@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
       .from("residents")
       .select("id, hostel_id")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (residentError) {
       console.error("[meals-api] Error fetching resident:", residentError);
@@ -26,12 +26,18 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (!resident) {
-      console.error("[meals-api] No resident record found for user:", userId);
-      throw createError({
-        statusCode: 404,
-        statusMessage: "Resident record not found",
-      });
+    if (!resident || !resident.hostel_id) {
+      console.log("[meals-api] No resident record or hostel assignment found for user:", userId);
+      // Return empty data for residents not yet assigned to a hostel
+      return {
+        meals: [],
+        weeklyStatus: [],
+        overrides: [],
+        weeklyMenu: [],
+        residentId: userId,
+        today: new Date().toISOString().slice(0, 10),
+        tomorrow: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+      };
     }
 
     console.log("[meals-api] Resident found:", resident.id, "hostel:", resident.hostel_id);

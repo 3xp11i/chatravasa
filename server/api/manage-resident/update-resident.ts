@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 		family_phone_number,
 		room,
 		avatar,
-		monthly_fee_amount,
+		is_invite,
 	} = body;
 
 	if (!resident_id || !hostel_slug) {
@@ -54,7 +54,39 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// Update profiles table (first_name, last_name, phone, avatar)
+	// Check if this is an invited resident or an actual resident
+	if (is_invite) {
+		// Update resident_invites table
+		const invitePayload: Database["public"]["Tables"]["resident_invites"]["Update"] = {};
+		if (first_name !== undefined) invitePayload.first_name = first_name;
+		if (last_name !== undefined) invitePayload.last_name = last_name;
+		if (phone_number !== undefined) invitePayload.phone = phone_number;
+		if (room !== undefined) invitePayload.room = room;
+		if (joining_date !== undefined) invitePayload.joining_date = joining_date || null;
+		if (father_name !== undefined) invitePayload.guardian_name = father_name || null;
+		if (family_phone_number !== undefined) invitePayload.family_phone_number = family_phone_number || null;
+
+		if (Object.keys(invitePayload).length > 0) {
+			const { data: updated, error: updateError } = await client
+				.from("resident_invites")
+				.update(invitePayload)
+				.eq("id", parseInt(resident_id))
+				.eq("hostel_id", hostel.id)
+				.select()
+				.single();
+
+			if (updateError) {
+				console.error("Invite update error:", updateError);
+				throw createError({ statusCode: 500, statusMessage: "Failed to update invited resident information" });
+			}
+
+			return { success: true, data: updated };
+		}
+
+		return { success: true };
+	}
+
+	// Update profiles table for actual residents (first_name, last_name, phone, avatar)
 	const profilePayload: Database["public"]["Tables"]["profiles"]["Update"] = {};
 	if (first_name !== undefined) profilePayload.first_name = first_name;
 	if (last_name !== undefined) profilePayload.last_name = last_name;
@@ -74,13 +106,12 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// Update residents table (room, joining_date, guardian_name, family_phone_number, monthly_fee_amount)
+	// Update residents table (room, joining_date, guardian_name, family_phone_number)
 	const residentPayload: Database["public"]["Tables"]["residents"]["Update"] = {};
 	if (joining_date !== undefined) residentPayload.joining_date = joining_date || null;
 	if (father_name !== undefined) residentPayload.guardian_name = father_name || null; // Map father_name to guardian_name
 	if (family_phone_number !== undefined) residentPayload.family_phone_number = family_phone_number || null;
 	if (room !== undefined) residentPayload.room = room;
-	if (monthly_fee_amount !== undefined) residentPayload.monthly_fee_amount = monthly_fee_amount || null;
 
 	// Only update residents if there are fields to update
 	if (Object.keys(residentPayload).length > 0) {

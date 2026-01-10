@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
 	const client = await serverSupabaseClient<Database>(event);
 	const body = await readBody(event);
-	const { resident_id, hostel_slug } = body;
+	const { resident_id, hostel_slug, is_invite } = body;
 
 	if (!resident_id || !hostel_slug) {
 		throw createError({ statusCode: 400, statusMessage: "resident_id and hostel_slug are required" });
@@ -41,14 +41,31 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	const { error: deleteError } = await client
-		.from("residents")
-		.delete()
-		.eq("id", resident_id)
-		.eq("hostel_id", hostel.id);
+	// Check if this is an invited resident or an actual resident
+	if (is_invite) {
+		// Delete from resident_invites table
+		const { error: deleteError } = await client
+			.from("resident_invites")
+			.delete()
+			.eq("id", parseInt(resident_id))
+			.eq("hostel_id", hostel.id);
 
-	if (deleteError) {
-		throw createError({ statusCode: 500, statusMessage: "Failed to remove resident" });
+		if (deleteError) {
+			console.error("Error deleting invited resident:", deleteError);
+			throw createError({ statusCode: 500, statusMessage: "Failed to remove invited resident" });
+		}
+	} else {
+		// Delete from residents table (this will cascade to related tables via foreign keys)
+		const { error: deleteError } = await client
+			.from("residents")
+			.delete()
+			.eq("id", resident_id)
+			.eq("hostel_id", hostel.id);
+
+		if (deleteError) {
+			console.error("Error deleting resident:", deleteError);
+			throw createError({ statusCode: 500, statusMessage: "Failed to remove resident" });
+		}
 	}
 
 	return { success: true };

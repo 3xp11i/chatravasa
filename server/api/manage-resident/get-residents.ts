@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
 	const client = await serverSupabaseClient<Database>(event);
 	const query = getQuery(event);
-	const { hostel_slug, limit, offset } = query;
+	const { hostel_slug, limit, offset, sort_by, filter_by } = query;
 
 	if (!hostel_slug || typeof hostel_slug !== "string") {
 		throw createError({ statusCode: 400, statusMessage: "hostel_slug is required" });
@@ -18,6 +18,8 @@ export default defineEventHandler(async (event) => {
 
 	const pageLimit = limit ? parseInt(limit as string) : 10;
 	const pageOffset = offset ? parseInt(offset as string) : 0;
+	const sortBy = sort_by as string || 'default'; // 'default', 'timestamp', 'name'
+	const filterBy = filter_by as string || 'all'; // 'all', 'current', 'invited'
 
 	// RLS policies handle access - staff can view hostels they're assigned to
 	const { data: hostel, error: hostelError } = await client
@@ -118,13 +120,40 @@ export default defineEventHandler(async (event) => {
 		is_invite: true,
 	}));
 
-	// Combine and sort by created_at (descending)
-	const combinedData = [...transformedResidents, ...transformedInvites];
-	console.log(combinedData);
+	// Combine data
+	let combinedData = [...transformedResidents, ...transformedInvites];
 	
-	combinedData.sort(
-		(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-	);
+	// Apply filtering
+	if (filterBy === 'current') {
+		combinedData = combinedData.filter(r => !r.is_invite);
+	} else if (filterBy === 'invited') {
+		combinedData = combinedData.filter(r => r.is_invite);
+	}
+	
+	// Apply sorting
+	if (sortBy === 'timestamp') {
+		// Sort by created_at timestamp (newest first)
+		combinedData.sort(
+			(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+		);
+	} else if (sortBy === 'name') {
+		// Sort alphabetically by first name, then last name
+		combinedData.sort((a, b) => {
+			const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
+			const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
+			return nameA.localeCompare(nameB);
+		});
+	} else {
+		// Default: Show actual residents first, then invited residents, sorted by timestamp within each group
+		combinedData.sort((a, b) => {
+			// First, sort by is_invite (false comes first)
+			if (a.is_invite !== b.is_invite) {
+				return a.is_invite ? 1 : -1;
+			}
+			// Then sort by timestamp (newest first)
+			return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+		});
+	}
 
 	const total = combinedData.length;
 	const paginated = combinedData.slice(pageOffset, pageOffset + pageLimit);

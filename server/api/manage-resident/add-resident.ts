@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
 		// Parse the request body
 		const body = await readBody(event);
-		const { first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, monthly_fee_amount, hostel_slug } = body;
+		const { first_name, last_name, phone, room, joining_date, guardian_name, family_phone_number, hostel_slug } = body;
 
 		// Validate required fields
 		if (!first_name || !last_name || !phone || !room || !hostel_slug) {
@@ -129,7 +129,6 @@ export default defineEventHandler(async (event) => {
 				joining_date: joining_date || null,
 				guardian_name: guardian_name || null,
 				family_phone_number: family_phone_number || null,
-				monthly_fee_amount: monthly_fee_amount || null,
 			})
 			.select()
 			.single();
