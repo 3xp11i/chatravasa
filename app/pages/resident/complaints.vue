@@ -2,13 +2,13 @@
   <div class="min-h-screen bg-background text-text px-4 py-8">
     <div class="card space-y-6">
       <!-- Header -->
-      <div class="flex flex-col justify-between">
+      <div class="flex flex-row justify-between items-center">
         <h1 class="text-2xl md:text-3xl font-bold">Complaints</h1>
-        <button @click="openCreateModal" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm md:text-base">
+        <button @click="openCreateModal" class="w-fit px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm md:text-base">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          New Complaint
+          Raise
         </button>
       </div>
 
@@ -19,10 +19,10 @@
             @click="currentFilter = undefined"
             :class="[
               currentFilter === undefined
-                ? 'bg-red-600 text-white'
+                ? 'bg-gray-200 rounded-b-none!'
                 : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300',
               'whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm rounded-b-none rounded-bl-none'
-            ]"
+            ]" class=""
           >
             All
           </button>
@@ -30,7 +30,7 @@
             @click="currentFilter = 'my'"
             :class="[
               currentFilter === 'my'
-                ? 'bg-red-600 text-white'
+                ? 'bg-gray-200 rounded-b-none!'
                 : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300',
               'whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm'
             ]"
@@ -41,7 +41,7 @@
             @click="currentFilter = 'public'"
             :class="[
               currentFilter === 'public'
-                ? 'bg-red-600 text-white'
+                ? 'bg-gray-200 rounded-b-none!'
                 : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300',
               'whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm rounded-b-none rounded-br-none'
             ]"

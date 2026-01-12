@@ -1,20 +1,25 @@
 <template>
-  <VueFinalModal
-    :model-value="true"
-    class="flex justify-center items-center px-4"
-    content-class="max-w-lg w-full max-h-[90vh] max-h-[90dvh]"
-    overlay-transition="vfm-fade"
-    content-transition="vfm-fade"
-    :click-to-close="false"
-    :lock-scroll="true"
-  >
+  <VueFinalModal :model-value="true"
+                 class="flex justify-center items-center px-4"
+                 content-class="max-w-lg w-full max-h-[90vh] max-h-[90dvh]"
+                 overlay-transition="vfm-fade"
+                 content-transition="vfm-fade"
+                 :click-to-close="false"
+                 :lock-scroll="true">
     <div class="bg-white rounded-lg shadow-xl p-6 max-h-[85vh] max-h-[85dvh] overflow-y-auto overflow-x-hidden w-full">
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-900">Submit Complaint</h2>
-        <button @click="props.onClose" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <button @click="props.onClose"
+                class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6"
+               fill="none"
+               stroke="currentColor"
+               viewBox="0 0 24 24">
+            <path stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -24,27 +29,23 @@
           <!-- Title -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input
-              v-model="form.title"
-              type="text"
-              required
-              maxlength="100"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="Brief summary of your complaint"
-            />
+            <input v-model="form.title"
+                   type="text"
+                   required
+                   maxlength="100"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                   placeholder="Brief summary of your complaint" />
           </div>
 
           <!-- Description -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              v-model="form.description"
-              required
-              rows="4"
-              maxlength="2000"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-              placeholder="Provide detailed information about your complaint..."
-            ></textarea>
+            <textarea v-model="form.description"
+                      required
+                      rows="4"
+                      maxlength="2000"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                      placeholder="Provide detailed information about your complaint..."></textarea>
             <p class="text-xs text-gray-500 mt-1">{{ form.description.length }}/2000 characters</p>
           </div>
 
@@ -52,13 +53,11 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
             <div class="flex gap-4">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  v-model="form.type"
-                  type="radio"
-                  value="private"
-                  class="text-red-600 focus:ring-red-500"
-                />
+              <label class="flex! flex-row! items-center gap-2 cursor-pointer">
+                <input v-model="form.type"
+                       type="radio"
+                       value="private"
+                       class="text-red-600 focus:ring-red-500 max-w-fit min-h-fit!" />
                 <span class="text-sm">
                   <span class="font-medium">Private</span>
                   <span class="text-gray-500"> - Only visible to admin/staff</span>
@@ -66,13 +65,11 @@
               </label>
             </div>
             <div class="flex gap-4 mt-2">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  v-model="form.type"
-                  type="radio"
-                  value="public"
-                  class="text-red-600 focus:ring-red-500"
-                />
+              <label class="flex! flex-row! justify-center items-center gap-2 cursor-pointer">
+                <input v-model="form.type"
+                       type="radio"
+                       value="public"
+                       class="text-red-600 focus:ring-red-500 max-w-fit min-h-fit!" />
                 <span class="text-sm">
                   <span class="font-medium">Public</span>
                   <span class="text-gray-500"> - Visible to all residents (can be upvoted)</span>
@@ -87,51 +84,47 @@
               Attachments
               <span class="text-gray-400 font-normal">(Optional - Max 2 images, 1 video)</span>
             </label>
-            <div
-              class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors cursor-pointer"
-              @click="triggerFileInput"
-              @dragover.prevent
-              @drop.prevent="handleDrop"
-            >
-              <input
-                ref="fileInput"
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                class="hidden"
-                @change="handleFileSelect"
-              />
-              <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                 @click="triggerFileInput"
+                 @dragover.prevent
+                 @drop.prevent="handleDrop">
+              <input ref="fileInput"
+                     type="file"
+                     accept="image/*,video/*"
+                     multiple
+                     class="hidden"
+                     @change="handleFileSelect" />
+              <svg class="mx-auto h-8 w-8 text-gray-400 mb-2"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <p class="text-sm text-gray-600">Click or drag files to upload</p>
               <p class="text-xs text-gray-400 mt-1">Images: JPG, PNG, GIF, WebP • Video: MP4, WebM (max 10MB each)</p>
             </div>
 
             <!-- Preview -->
-            <div v-if="mediaFiles.length > 0" class="flex flex-wrap gap-2 mt-3">
-              <div
-                v-for="(file, idx) in mediaFiles"
-                :key="idx"
-                class="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200"
-              >
-                <img
-                  v-if="file.type.startsWith('image/')"
-                  :src="getPreviewUrl(file)"
-                  alt="Preview"
-                  class="w-full h-full object-cover"
-                />
-                <div v-else class="w-full h-full bg-gray-100 flex items-center justify-center">
-                  <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+            <div v-if="mediaFiles.length > 0"
+                 class="flex flex-wrap gap-5 mt-3">
+              <div v-for="(file, idx) in mediaFiles"
+                   :key="idx"
+                   class="relative w-20 h-20 rounded-lg overflow-visible border border-gray-200">
+                <img v-if="file.type.startsWith('image/')"
+                     :src="getPreviewUrl(file)"
+                     alt="Preview"
+                     class="w-full h-full object-cover" />
+                <div v-else
+                     class="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <Icon name="material-symbols:video-file" class="text-gray-400 text-4xl" />
                 </div>
-                <button
-                  type="button"
-                  @click.stop="removeFile(idx)"
-                  class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                >
-                  ×
+                <button type="button"
+                        @click.stop="removeFile(idx)"
+                        class="z-50 absolute -top-4 -right-4 rounded-full flex items-center justify-center w-fit p-0!">
+                  <Icon name="material-symbols:cancel" class="text-gray-600 text-2xl" />
                 </button>
               </div>
             </div>
@@ -139,28 +132,22 @@
         </div>
 
         <!-- Status Message -->
-        <div
-          v-if="statusMessage"
-          class="mt-4 p-3 rounded-md"
-          :class="statusType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-        >
+        <div v-if="statusMessage"
+             class="mt-4 p-3 rounded-md"
+             :class="statusType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
           {{ statusMessage }}
         </div>
 
         <!-- Actions -->
         <div class="flex justify-end gap-3 mt-6">
-          <button
-            type="button"
-            @click="props.onClose"
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-          >
+          <button type="button"
+                  @click="props.onClose"
+                  class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
             Cancel
           </button>
-          <button
-            type="submit"
-            :disabled="isSubmitting"
-            class="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
-          >
+          <button type="submit"
+                  :disabled="isSubmitting"
+                  class="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50">
             {{ isSubmitting ? 'Submitting...' : 'Submit Complaint' }}
           </button>
         </div>
@@ -234,13 +221,13 @@ function addFiles(files: File[]) {
 
     // Validate counts
     if (file.type.startsWith('image/')) {
-      if (imageCount + mediaFiles.value.filter(f => f.type.startsWith('image/')).length >= 2) {
+      if (imageCount >= 2) {
         statusMessage.value = 'Maximum 2 images allowed'
         statusType.value = 'error'
         continue
       }
     } else if (file.type.startsWith('video/')) {
-      if (videoCount + mediaFiles.value.filter(f => f.type.startsWith('video/')).length >= 1) {
+      if (videoCount >= 1) {
         statusMessage.value = 'Maximum 1 video allowed'
         statusType.value = 'error'
         continue
