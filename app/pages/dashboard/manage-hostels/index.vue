@@ -71,9 +71,9 @@
             <NuxtLink :to="`/dashboard/hostels/${hostel.hostel_slug}`" class="btn-view">
               {{ t('openHostelPage') }}
             </NuxtLink>
-            <button v-if="apiIsAdmin" @click="deleteHostel(hostel.id)" class="btn-delete">
+            <!-- <button v-if="apiIsAdmin" @click="deleteHostel(hostel.id)" class="btn-delete">
               {{ t('delete') }}
-            </button>
+            </button> -->
           </div>
         </div>
       </div>

@@ -447,7 +447,7 @@ export type Database = {
       hostels: {
         Row: {
           address: string
-          admin_user_id: string
+          admin_user_id: string | null
           available_rooms: number | null
           created_at: string
           hostel_name: string
@@ -457,7 +457,7 @@ export type Database = {
         }
         Insert: {
           address: string
-          admin_user_id: string
+          admin_user_id?: string | null
           available_rooms?: number | null
           created_at?: string
           hostel_name: string
@@ -467,7 +467,7 @@ export type Database = {
         }
         Update: {
           address?: string
-          admin_user_id?: string
+          admin_user_id?: string | null
           available_rooms?: number | null
           created_at?: string
           hostel_name?: string
@@ -778,6 +778,33 @@ export type Database = {
           },
         ]
       }
+      trigger_debug_log: {
+        Row: {
+          created_at: string | null
+          id: number
+          message: string | null
+          phone: string | null
+          resident_invite_found: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          message?: string | null
+          phone?: string | null
+          resident_invite_found?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          message?: string | null
+          phone?: string | null
+          resident_invite_found?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       meal_analytics: {
@@ -818,6 +845,10 @@ export type Database = {
           user_data: Json
         }[]
       }
+      can_view_profile: {
+        Args: { profile_id: string; viewer_id: string }
+        Returns: boolean
+      }
       create_user_with_pin: {
         Args: {
           user_email?: string
@@ -830,11 +861,24 @@ export type Database = {
         }
         Returns: Json
       }
+      get_user_hostel_id: { Args: { user_id: string }; Returns: string }
       hash_pin: { Args: { pin_text: string }; Returns: string }
       is_staff_of_hostel: { Args: { hostel_id: string }; Returns: boolean }
+      residents_in_same_hostel: {
+        Args: { target_id: string; viewer_id: string }
+        Returns: boolean
+      }
       set_config: {
         Args: { is_local?: boolean; new_value: string; setting_name: string }
         Returns: string
+      }
+      staff_can_view_profile: {
+        Args: { profile_id: string; viewer_id: string }
+        Returns: boolean
+      }
+      users_in_same_hostel: {
+        Args: { user1: string; user2: string }
+        Returns: boolean
       }
       validate_session: { Args: { token: string }; Returns: Json }
       verify_pin: {
