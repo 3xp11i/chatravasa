@@ -66,8 +66,8 @@
                        class="w-full outline-none text-gray-800" />
             </div>
             <div class="text-sm text-gray-500">
-                {{ localizeNumber(searchTerm ? filteredResidents.length : totalResidents) }}
-                {{ searchTerm ? t('found') : t('total') }}
+                {{ localizeNumber(totalResidents) }}
+                {{ debouncedSearchTerm ? t('found') : t('total') }}
             </div>
         </div>
 
@@ -91,7 +91,7 @@
                     <div class="flex items-center gap-3">
                         <div
                              class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-semibold text-sm">
-                            {{ localizeNumber(searchTerm ? index + 1 : (currentPage - 1) * pageSize + index + 1) }}
+                            {{ localizeNumber((currentPage - 1) * pageSize + index + 1) }}
                         </div>
                         <img :src="resident.avatar || placeholderAvatar"
                              class="h-14 w-14 rounded-full object-cover border border-gray-200"
@@ -118,7 +118,7 @@
             </div>
 
             <!-- Pagination -->
-            <div v-if="!searchTerm && totalPages > 1"
+            <div v-if="totalPages > 1"
                  class="flex justify-center items-center gap-2 mt-6">
                 <button @click="goToPage(currentPage - 1)"
                         :disabled="currentPage === 1"
@@ -220,25 +220,37 @@ const isAdmin = computed(() => userProfile.value?.is_admin ?? false)
 const canAddResident = computed(() => isAdmin.value || canManageForHostel(hostelSlug, 'residents'))
 
 const searchTerm = ref('')
+const debouncedSearchTerm = ref('')
 const currentPage = ref(navigationStore.getLastPage(pageKey.value))
 const sortBy = ref<'default' | 'timestamp' | 'name'>('default')
 const filterBy = ref<'all' | 'current' | 'invited'>('all')
 
+// Debounce search input
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+watch(searchTerm, (newValue) => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = setTimeout(() => {
+        debouncedSearchTerm.value = newValue
+        currentPage.value = 1 // Reset to first page on search
+    }, 300)
+})
+
 // useAsyncData properly caches in SPA mode
 
 const { data: apiResponse, pending, error, refresh } = useAsyncData(
-    () => `residents-${hostelSlug}-page-${currentPage.value}-sort-${sortBy.value}-filter-${filterBy.value}`,
+    () => `residents-${hostelSlug}-page-${currentPage.value}-sort-${sortBy.value}-filter-${filterBy.value}-search-${debouncedSearchTerm.value}`,
     () => $fetch('/api/manage-resident/get-residents', {
         query: {
             hostel_slug: hostelSlug,
             limit: pageSize,
             offset: (currentPage.value - 1) * pageSize,
             sort_by: sortBy.value,
-            filter_by: filterBy.value
+            filter_by: filterBy.value,
+            search: debouncedSearchTerm.value || undefined
         }
     }),
     {
-        watch: [currentPage, sortBy, filterBy],
+        watch: [currentPage, sortBy, filterBy, debouncedSearchTerm],
         getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
     }
 )
@@ -248,21 +260,8 @@ const residents = computed(() => apiResponse.value?.residents || [])
 const totalResidents = computed(() => apiResponse.value?.total || 0)
 const totalPages = computed(() => Math.ceil(totalResidents.value / pageSize))
 
-const filteredResidents = computed(() => {
-    if (!searchTerm.value.trim()) {
-        return residents.value
-    }
-
-    const term = searchTerm.value.trim().toLowerCase()
-    return residents.value.filter((r: Resident) => {
-        const fullName = `${r.first_name} ${r.last_name}`.toLowerCase()
-        return (
-            fullName.includes(term) ||
-            stripPhonePrefix(r.phone_number).toLowerCase().includes(term) ||
-            (r.room || '').toLowerCase().includes(term)
-        )
-    })
-})
+// Since search is now server-side, filteredResidents just returns the API results
+const filteredResidents = computed(() => residents.value)
 
 const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages.value) {

@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
 	const client = await serverSupabaseClient<Database>(event);
 	const query = getQuery(event);
-	const { hostel_slug, limit, offset, sort_by, filter_by } = query;
+	const { hostel_slug, limit, offset, sort_by, filter_by, search } = query;
 
 	if (!hostel_slug || typeof hostel_slug !== "string") {
 		throw createError({ statusCode: 400, statusMessage: "hostel_slug is required" });
@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
 	const pageOffset = offset ? parseInt(offset as string) : 0;
 	const sortBy = sort_by as string || 'default'; // 'default', 'timestamp', 'name'
 	const filterBy = filter_by as string || 'all'; // 'all', 'current', 'invited'
+	const searchTerm = (search as string || '').trim().toLowerCase();
 
 	// RLS policies handle access - staff can view hostels they're assigned to
 	const { data: hostel, error: hostelError } = await client
@@ -128,6 +129,16 @@ export default defineEventHandler(async (event) => {
 		combinedData = combinedData.filter(r => !r.is_invite);
 	} else if (filterBy === 'invited') {
 		combinedData = combinedData.filter(r => r.is_invite);
+	}
+	
+	// Apply search filtering
+	if (searchTerm) {
+		combinedData = combinedData.filter(r => {
+			const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
+			const phone = (r.phone_number || '').replace(/[^\d]/g, '').slice(-10);
+			const room = (r.room || '').toLowerCase();
+			return fullName.includes(searchTerm) || phone.includes(searchTerm) || room.includes(searchTerm);
+		});
 	}
 	
 	// Apply sorting
