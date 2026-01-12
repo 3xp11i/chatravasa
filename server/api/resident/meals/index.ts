@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
     // Fetch all meals for hostel
     const { data: meals, error: mealsError } = await client
       .from("hostel_meals")
-      .select("*")
+      .select("id, name, timing, weekdays, status_deadline")
       .eq("hostel_id", resident.hostel_id)
       .order("timing");
 

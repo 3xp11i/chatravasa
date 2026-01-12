@@ -86,6 +86,18 @@ export const useMealsData = () => {
     return store.weeklyStatus[mealId]?.notOpted.includes(weekday) || false;
   };
 
+  const isMealEditable = (mealId: string, dateStr: string) => {
+    const meal = store.meals.find((m) => m.id === mealId);
+    if (!meal) return false;
+
+    const deadlineHours = meal.status_deadline || 0;
+    const now = new Date();
+    const mealDate = new Date(`${dateStr}T00:00:00`);
+    const deadlineTime = new Date(mealDate.getTime() - deadlineHours * 60 * 60 * 1000);
+
+    return now < deadlineTime;
+  };
+
   return {
     // Reactive state
     meals: computed(() => store.meals),
@@ -110,5 +122,6 @@ export const useMealsData = () => {
     initialChoice,
     isWeeklyYes,
     isWeeklyNo,
+    isMealEditable,
   };
 };

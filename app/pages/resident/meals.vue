@@ -17,8 +17,8 @@
                         <div class="rounded-xl border border-surface-200 bg-surface p-4">
                             <h3 class="text-lg font-semibold mb-3">Today's Plan</h3>
                             <div v-if="!hostelMeals.length" class="text-text-muted text-sm">No meals found for your hostel.</div>
-                            <div v-else-if="servedMealsForDay(todayWeekday).length === 0" class="text-text-muted text-sm">No meals served today.</div>
-                            <div v-for="meal in servedMealsForDay(todayWeekday)" :key="'today-' + meal.id" class="flex items-center justify-between py-2">
+                            <div v-else-if="servedMealsForDay(todayWeekday).filter(m => isMealEditable(m.id, todayStr)).length === 0" class="text-text-muted text-sm">No editable meals for today (all deadlines have passed).</div>
+                            <div v-for="meal in servedMealsForDay(todayWeekday).filter(m => isMealEditable(m.id, todayStr))" :key="'today-' + meal.id" class="flex items-center justify-between py-2">
                                 <div class="flex flex-col">
                                     <span class="font-medium">{{ meal.name }}</span>
                                     <span class="text-xs text-text-muted capitalize">{{ meal.timing }}</span>
@@ -172,6 +172,7 @@ const {
     initialChoice,
     isWeeklyYes,
     isWeeklyNo,
+    isMealEditable,
 } = useMealsData();
 
 const todayChoices = ref<Record<string, boolean | undefined>>({});

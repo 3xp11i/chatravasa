@@ -5,6 +5,7 @@ interface HostelMeal {
   name: string;
   timing: string;
   weekdays: number[];
+  status_deadline: number;
 }
 
 interface WeeklyStatus {
