@@ -234,10 +234,12 @@ onMounted(() => {
 </script>
 
 <template>
-    <VueFinalModal class="flex justify-center items-center"
-                   content-class="w-full max-w-3xl mx-4 bg-white rounded-xl shadow-xl p-6 max-h-[90vh] overflow-y-auto"
+    <VueFinalModal class="flex justify-center items-center px-4"
+                   content-class="w-full max-w-3xl bg-white rounded-xl shadow-xl p-6 max-h-[90vh] max-h-[90dvh] overflow-y-auto overflow-x-hidden"
                    overlay-transition="vfm-fade"
-                   content-transition="vfm-fade">
+                   content-transition="vfm-fade"
+                   :click-to-close="false"
+                   :lock-scroll="true">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">{{ t('feeDetails') }}</h2>

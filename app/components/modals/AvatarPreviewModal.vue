@@ -1,6 +1,6 @@
 <template>
-  <VueFinalModal class="flex items-center justify-center" :click-to-close="false">
-    <div class="card bg-white rounded-lg shadow-lg p-6 w-[92vw] mx-4 max-h-[90vh] overflow-y-auto">
+  <VueFinalModal class="flex items-center justify-center px-4" :click-to-close="false" :lock-scroll="true">
+    <div class="card bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] max-h-[90dvh] overflow-y-auto overflow-x-hidden">
       <!-- Header -->
       <h3 class="text-xl font-bold mb-4">Confirm Avatar</h3>
 

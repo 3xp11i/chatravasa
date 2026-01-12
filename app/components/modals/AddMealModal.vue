@@ -1,10 +1,12 @@
 <template>
     <VueFinalModal :model-value="true"
-                   class="flex justify-center items-center"
-                   content-class="w-full mx-4 max-h-[90vh]"
+                   class="flex justify-center items-center px-4"
+                   content-class="max-w-lg w-full max-h-[90vh] max-h-[90dvh]"
                    overlay-transition="vfm-fade"
-                   content-transition="vfm-fade">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-h-[80vh] overflow-y-auto w-full">
+                   content-transition="vfm-fade"
+                   :click-to-close="false"
+                   :lock-scroll="true">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-h-[80vh] max-h-[80dvh] overflow-y-auto overflow-x-hidden w-full">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-900">Add Meal</h2>
                 <button @click="emit('close')"

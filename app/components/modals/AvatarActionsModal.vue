@@ -1,6 +1,9 @@
 <template>
-  <VueFinalModal class="flex items-center justify-center" @click-outside="emit('close')">
-    <div class="card bg-white rounded-lg shadow-lg p-6 w-full mx-4">
+  <VueFinalModal 
+    class="flex items-center justify-center px-4" 
+    @click-outside="emit('close')"
+    :lock-scroll="true">
+    <div class="card bg-white rounded-lg shadow-lg p-6 w-full max-w-sm overflow-x-hidden">
       <h3 class="text-lg font-semibold mb-4">Profile picture</h3>
 
       <div class="space-y-3">

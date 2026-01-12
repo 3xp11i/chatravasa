@@ -1,12 +1,14 @@
 <template>
   <VueFinalModal
     :model-value="true"
-    class="flex justify-center items-center"
-    content-class="w-full mx-4 max-h-[90vh]"
+    class="flex justify-center items-center px-4"
+    content-class="max-w-2xl w-full max-h-[90vh] max-h-[90dvh]"
     overlay-transition="vfm-fade"
     content-transition="vfm-fade"
+    :click-to-close="false"
+    :lock-scroll="true"
   >
-    <div class="bg-white rounded-lg shadow-xl max-h-[85vh] overflow-hidden flex flex-col w-full">
+    <div class="bg-white rounded-lg shadow-xl max-h-[85vh] max-h-[85dvh] overflow-hidden overflow-x-hidden flex flex-col w-full">
       <!-- Header -->
       <div class="flex justify-between items-center p-4 border-b border-gray-200">
         <div class="flex items-center gap-3">

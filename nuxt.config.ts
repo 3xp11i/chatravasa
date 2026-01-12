@@ -155,7 +155,8 @@ export default defineNuxtConfig({
 					content:
 						"Chatravasa Management system for hostel residents and staff",
 				},
-				{ name: "viewport", content: "width=device-width, initial-scale=1" },
+				{ name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" },
+			{ name: "HandheldFriendly", content: "true" },
 				{ name: "theme-color", content: "#4CAF50" },
 			],
 			link: [

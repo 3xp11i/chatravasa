@@ -1,9 +1,11 @@
 <template>
-    <VueFinalModal class="flex justify-center items-center"
-                   content-class="w-full mx-4 max-h-[90vh]"
+    <VueFinalModal class="flex justify-center items-center px-4"
+                   content-class="max-w-2xl w-full max-h-[90vh] max-h-[90dvh]"
                    overlay-transition="vfm-fade"
-                   content-transition="vfm-fade">
-        <div class="bg-white rounded-xl shadow-xl p-6 max-h-[80vh] overflow-y-auto">
+                   content-transition="vfm-fade"
+                   :click-to-close="false"
+                   :lock-scroll="true">
+        <div class="bg-white rounded-xl shadow-xl p-6 max-h-[80vh] max-h-[80dvh] overflow-y-auto overflow-x-hidden">
             <div class="flex justify-between items-start gap-4 mb-6">
                 <div class="flex items-center gap-4">
                     <img :src="displayAvatar"

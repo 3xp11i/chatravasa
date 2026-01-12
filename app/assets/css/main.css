@@ -46,11 +46,22 @@ a, button, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ---------------------------------------------------------------------------
+   iOS Safari PWA Fixes - Prevent unwanted zooming and horizontal scroll
+--------------------------------------------------------------------------- */
 html {
   font-family: "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 16px; /* Base 16px for mobile */
+  font-size: 16px; /* Base 16px for mobile - prevents iOS auto-zoom on input focus */
+  /* iOS Safari height fix */
+  height: 100%;
+  height: -webkit-fill-available;
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
+  /* Disable pinch-to-zoom and double-tap zoom on iOS */
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
 }
 
 body {
@@ -58,9 +69,28 @@ body {
   padding: 0;
   background-color: var(--color-background);
   color: var(--color-text);
+  /* iOS Safari height fix - use both for compatibility */
   min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh; /* Dynamic viewport height for modern browsers */
   line-height: 1.6;
   font-size: 1rem;
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
+  /* Inherit touch-action to prevent zoom */
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Safe area padding for notched devices */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent zoom on double-tap for interactive elements */
+button, a, input, select, textarea, label {
+  touch-action: manipulation;
 }
 
 /* ---------------------------------------------------------------------------
@@ -384,6 +414,46 @@ img {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   iOS Safari Modal Fixes - Prevent horizontal scroll and stabilize layout
+--------------------------------------------------------------------------- */
+/* Vue Final Modal overlay - ensure proper iOS behavior */
+.vfm {
+  /* Prevent any overflow issues */
+  overflow: hidden !important;
+  /* Ensure touch behavior is correct */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Modal content container - prevent horizontal overflow */
+.vfm__content {
+  /* Use max-width with calc to account for margins safely */
+  max-width: calc(100vw - 2rem) !important;
+  max-width: calc(100dvw - 2rem) !important; /* Dynamic viewport for iOS */
+  /* Prevent any horizontal overflow */
+  overflow-x: hidden !important;
+  /* Ensure vertical scroll works smoothly on iOS */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Disable zoom gestures inside modal */
+  touch-action: pan-y;
+}
+
+/* Scrollable containers inside modals */
+.vfm__content [class*="overflow-y-auto"],
+.vfm__content [class*="overflow-auto"] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* Ensure modal inner content doesn't cause overflow */
+.vfm__content > div {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ---------------------------------------------------------------------------
