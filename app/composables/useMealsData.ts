@@ -69,7 +69,9 @@ export const useMealsData = () => {
       return store.overrides[key];
     }
     // Otherwise, check weekly preference
-    const weekday = new Date(`${dateStr}T00:00:00`).getDay();
+    // Parse date string (YYYY-MM-DD) in local timezone
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const weekday = new Date(year, month - 1, day).getDay();
     const status = store.weeklyStatus[mealId];
     if (status) {
       if (status.isOpted.includes(weekday)) return true;
@@ -92,8 +94,17 @@ export const useMealsData = () => {
 
     const deadlineHours = meal.status_deadline || 0;
     const now = new Date();
-    const mealDate = new Date(`${dateStr}T00:00:00`);
-    const deadlineTime = new Date(mealDate.getTime() - deadlineHours * 60 * 60 * 1000);
+    
+    // Parse meal time (e.g., "08:00" or "13:30")
+    const mealTime = meal.timing || "00:00";
+    const [mealHours, mealMinutes] = mealTime.split(':').map(Number);
+    
+    // Parse date string (YYYY-MM-DD) and create local datetime
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const mealDateTime = new Date(year, month - 1, day, mealHours || 0, mealMinutes || 0, 0, 0);
+    
+    // Calculate deadline: X hours BEFORE the meal time
+    const deadlineTime = new Date(mealDateTime.getTime() - deadlineHours * 60 * 60 * 1000);
 
     return now < deadlineTime;
   };

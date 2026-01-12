@@ -178,11 +178,27 @@ const {
 const todayChoices = ref<Record<string, boolean | undefined>>({});
 const tomorrowChoices = ref<Record<string, boolean | undefined>>({});
 
-const todayStr = computed(() => new Date().toISOString().slice(0, 10));
-const tomorrowStr = computed(() => new Date(Date.now() + 86400000).toISOString().slice(0, 10));
+// Helper to get local date string in YYYY-MM-DD format
+const getLocalDateStr = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const todayStr = computed(() => getLocalDateStr(new Date()));
+const tomorrowStr = computed(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return getLocalDateStr(tomorrow);
+});
 const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const todayWeekday = computed(() => new Date(`${todayStr.value}T00:00:00`).getDay());
-const tomorrowWeekday = computed(() => new Date(`${tomorrowStr.value}T00:00:00`).getDay());
+const todayWeekday = computed(() => new Date().getDay());
+const tomorrowWeekday = computed(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.getDay();
+});
 
 function rebuildDailyChoices() {
     const today = todayStr.value;
