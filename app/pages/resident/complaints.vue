@@ -220,10 +220,6 @@ watch(currentFilter, async (newFilter) => {
   await load(newFilter)
 })
 
-onMounted(async () => {
-  await load()
-})
-
 function openCreateModal() {
   const { open, close } = useModal({
     component: CreateComplaintModal,
@@ -248,8 +244,8 @@ function openComplaintDetails(complaint: any) {
     component: ComplaintDetailsModal,
     attrs: {
       complaint,
-      replies,
-      repliesLoading,
+      replies: replies.value,
+      repliesLoading: repliesLoading.value,
       isResident: true,
       onClose() {
         close()
@@ -291,13 +287,9 @@ async function handleResolve(complaintId: string) {
 
 async function handleUpvote(complaintId: string) {
   try {
-    const result = await toggleUpvote(complaintId)
-    // Find the complaint in the list and update it directly
-    const complaintIndex = complaints.value.findIndex(c => c.id === complaintId)
-    if (complaintIndex !== -1) {
-      complaints.value[complaintIndex].upvotes = result.upvotes
-      complaints.value[complaintIndex].has_upvoted = result.upvoted
-    }
+    await toggleUpvote(complaintId)
+    // Refresh the list to get updated upvote counts
+    await load(currentFilter.value)
   } catch (err) {
     console.error('Failed to upvote complaint:', err)
   }
@@ -380,6 +372,7 @@ function isImage(url: string) {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
