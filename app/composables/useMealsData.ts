@@ -167,7 +167,10 @@ export const useMealsData = () => {
     }
     // Otherwise, check weekly preference
     // Parse date string (YYYY-MM-DD) in local timezone
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const parts = dateStr.split('-').map(Number);
+    const year = parts[0] || 0;
+    const month = parts[1] || 1;
+    const day = parts[2] || 1;
     const weekday = new Date(year, month - 1, day).getDay();
     const status = weeklyStatus.value[mealId];
     if (status) {
@@ -189,7 +192,7 @@ export const useMealsData = () => {
     const meal = meals.value.find((m) => m.id === mealId);
     if (!meal) return false;
 
-    const deadlineHours = meal.status_deadline || 0;
+    const deadlineMinutes = meal.status_deadline || 0;
     const now = new Date();
     
     // Parse meal time (e.g., "08:00" or "13:30")
@@ -197,11 +200,14 @@ export const useMealsData = () => {
     const [mealHours, mealMinutes] = mealTime.split(':').map(Number);
     
     // Parse date string (YYYY-MM-DD) and create local datetime
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const parts = dateStr.split('-').map(Number);
+    const year = parts[0] || 0;
+    const month = parts[1] || 1;
+    const day = parts[2] || 1;
     const mealDateTime = new Date(year, month - 1, day, mealHours || 0, mealMinutes || 0, 0, 0);
     
-    // Calculate deadline: X hours BEFORE the meal time
-    const deadlineTime = new Date(mealDateTime.getTime() - deadlineHours * 60 * 60 * 1000);
+    // Calculate deadline: X minutes BEFORE the meal time
+    const deadlineTime = new Date(mealDateTime.getTime() - deadlineMinutes * 60 * 1000);
 
     return now < deadlineTime;
   };

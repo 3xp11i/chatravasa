@@ -209,7 +209,7 @@
           <div class="flex items-start justify-between">
             <div>
               <h3 class="text-lg font-semibold text-gray-900">{{ meal.name }}</h3>
-              <p class="text-sm text-gray-600">{{ formatTime(meal.timing) }} • {{ t('deadline') }} {{ localizeNumber(meal.status_deadline) }}{{ t('hours') }}</p>
+              <p class="text-sm text-gray-600">{{ formatTime(meal.timing) }} • {{ t('deadline') }} {{ formatDeadline(meal.status_deadline) }}</p>
             </div>
             <button v-if="canManageMeals" @click="openEdit(meal)" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">{{ t('edit') }}</button>
           </div>
@@ -314,7 +314,7 @@ const analyticsData = computed(() => analyticsResponse.value)
 const timeToMinutes = (timeStr: string): number => {
   if (!timeStr) return 0
   const [h, m] = timeStr.split(':').map(Number)
-  return h * 60 + m
+  return (h || 0) * 60 + (m || 0)
 }
 
 // Get current time in minutes
@@ -434,6 +434,18 @@ const getCountColor = (count: number, total: number) => {
 const getPercentage = (count: number, total: number) => {
   if (total === 0) return 0
   return Math.round((count / total) * 100)
+}
+
+const formatDeadline = (minutes: number) => {
+  if (minutes < 60) {
+    return `${localizeNumber(minutes)} ${t('minutes')}`
+  }
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  if (remainingMinutes === 0) {
+    return `${localizeNumber(hours)} ${t('hours')}`
+  }
+  return `${localizeNumber(hours)} ${t('hours')} ${localizeNumber(remainingMinutes)} ${t('minutes')}`
 }
 </script>
 

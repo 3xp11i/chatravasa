@@ -29,7 +29,7 @@
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Status Deadline (hours)</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Status Deadline (minutes)</label>
           <input v-model.number="form.status_deadline" type="number" min="0" step="1" required
                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
         </div>

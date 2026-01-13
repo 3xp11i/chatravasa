@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
       menu?: { weekday: number; food: string }[]
     }>(event)
 
-    const { hostel_slug, name, timing, status_deadline = 2, weekdays, menu } = body || ({} as any)
+    const { hostel_slug, name, timing, status_deadline = 120, weekdays, menu } = body || ({} as any)
 
     if (!hostel_slug || !name?.trim() || !timing || !Array.isArray(weekdays) || weekdays.length === 0) {
       throw createError({ statusCode: 400, statusMessage: "Invalid input data" })
