@@ -144,7 +144,7 @@
         </div>
       </div>
 
-      <!-- Weekly Food Schedule Table -->
+      <!-- Weekly Food Schedule Table (Meals as rows, Days as columns) -->
       <div>
         <h2 class="text-lg font-semibold text-gray-900 mb-3">{{ t('weeklyFoodSchedule') }}</h2>
         <p class="text-sm text-gray-600 mb-4">{{ t('foodScheduleDesc') }}</p>
@@ -159,17 +159,19 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('weekday') }}</th>
-                <th v-for="meal in meals" :key="meal.id" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div>{{ meal.name }}</div>
-                  <div class="text-xs font-normal text-gray-500 normal-case">{{ formatTime(meal.timing) }}</div>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('meal') }}</th>
+                <th v-for="d in days" :key="'menu-header-day-' + d.value" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="min-width: 120px;">
+                  {{ d.labelLong }}
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="d in days" :key="d.value">
-                <td class="px-4 py-3 font-semibold text-gray-900">{{ d.labelLong }}</td>
-                <td v-for="meal in meals" :key="meal.id" class="px-4 py-3 text-sm text-gray-700">
+              <tr v-for="meal in meals" :key="'menu-row-' + meal.id" class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                  <div>{{ meal.name }}</div>
+                  <div class="text-xs font-normal text-gray-500 normal-case">{{ formatTime(meal.timing) }}</div>
+                </td>
+                <td v-for="d in days" :key="'menu-cell-' + meal.id + '-' + d.value" class="px-4 py-3 text-sm text-gray-700" style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal;">
                   <span v-if="meal.weekdays.includes(d.value)">{{ meal.menu?.[d.value] || '—' }}</span>
                   <span v-else class="text-gray-300">—</span>
                 </td>
