@@ -119,8 +119,8 @@ const pageKey = computed(() => route.path)
 const currentPage = ref(navigationStore.getLastPage(pageKey.value));
 const pageSize = 10;
 
-// useAsyncData properly caches in SPA mode
-const { data: hostelData, pending: loading, error: fetchError, refresh } = useAsyncData(
+// useCachedAsyncData provides proper caching for SPA navigation
+const { data: hostelData, pending: loading, error: fetchError, refresh } = useCachedAsyncData(
   `hostels-page-${currentPage.value}`,
   () => $fetch('/api/manage-hostel/get-hostels', {
     method: 'GET',
