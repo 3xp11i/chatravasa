@@ -14,6 +14,8 @@ export default defineEventHandler(async (event) => {
   const hostel_slug = query.hostel_slug as string
   const limit = parseInt(query.limit as string) || 10
   const offset = parseInt(query.offset as string) || 0
+  const search = (query.search as string)?.trim() || ''
+  const statusFilter = (query.status_filter as string) || 'all'
 
   if (!hostel_slug) {
     throw createError({
@@ -54,8 +56,8 @@ export default defineEventHandler(async (event) => {
   // Get current month index (0-11)
   const currentMonthIndex = new Date().getMonth()
 
-  // Get all residents with their profile info
-  const { data: residents, error: residentsError } = await client
+  // Build query for residents with profile info
+  let residentsQuery = client
     .from('residents')
     .select(`
       id,
@@ -72,8 +74,15 @@ export default defineEventHandler(async (event) => {
       )
     `)
     .eq('hostel_id', hostel.id)
-    .order('room', { ascending: true })
-    .range(offset, offset + limit - 1)
+
+  // Apply search filter if provided
+  if (search) {
+    residentsQuery = residentsQuery.or(
+      `room.ilike.%${search}%,profiles.first_name.ilike.%${search}%,profiles.last_name.ilike.%${search}%,profiles.phone.ilike.%${search}%`
+    )
+  }
+
+  const { data: allResidents, error: residentsError } = await residentsQuery.order('room', { ascending: true })
 
   if (residentsError) {
     throw createError({
@@ -82,18 +91,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get total count
-  const { count, error: countError } = await client
-    .from('residents')
-    .select('*', { count: 'exact', head: true })
-    .eq('hostel_id', hostel.id)
-
-  if (countError) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: countError.message,
-    })
-  }
+  // We'll calculate the total after applying status filter
+  const residents = allResidents || []
 
   // Get resident invites
   const { data: invites, error: invitesError } = await client
@@ -101,7 +100,7 @@ export default defineEventHandler(async (event) => {
     .select('*')
     .eq('hostel_id', hostel.id)
 
-  const residentIds = residents?.map((r) => r.id) || []
+  const residentIds = residents.map((r) => r.id)
 
   // Get fee info for all residents
   const { data: feeInfo, error: feeInfoError } = await client
@@ -125,7 +124,7 @@ export default defineEventHandler(async (event) => {
     .eq('month_index', currentMonthIndex)
 
   // Combine all data
-  const residentsWithFees = residents?.map((resident) => {
+  let residentsWithFees = residents.map((resident) => {
     const profile = resident.profiles as any
     const feeData = feeInfo?.find((f) => f.resident_id === resident.id)
     const payment = payments?.find((p) => p.resident_id === resident.id)
@@ -143,7 +142,7 @@ export default defineEventHandler(async (event) => {
     const remainingBalance = totalAmount - amountPaid
 
     // Determine payment status
-    let paymentStatus = 'unpaid'
+    let paymentStatus: 'paid' | 'partial' | 'unpaid' = 'unpaid'
     if (amountPaid >= totalAmount && totalAmount > 0) {
       paymentStatus = 'paid'
     } else if (amountPaid > 0 && amountPaid < totalAmount) {
@@ -171,11 +170,22 @@ export default defineEventHandler(async (event) => {
       payment_status: paymentStatus,
       payment_date: payment?.paid_on || null,
     }
-  }) || []
+  })
+
+  // Apply status filter if not 'all'
+  if (statusFilter !== 'all') {
+    residentsWithFees = residentsWithFees.filter(r => r.payment_status === statusFilter)
+  }
+
+  // Get total count after filtering
+  const total = residentsWithFees.length
+
+  // Apply pagination
+  const paginatedResidents = residentsWithFees.slice(offset, offset + limit)
 
   return {
-    residents: residentsWithFees,
-    total: count || 0,
+    residents: paginatedResidents,
+    total,
     current_month: currentMonthIndex,
   }
 })

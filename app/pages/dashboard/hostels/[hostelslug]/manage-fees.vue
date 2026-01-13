@@ -1,7 +1,7 @@
 <template>
     <div class="w-full max-w-5xl mx-auto px-4 py-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 items-end">
-            <div>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 items-start">
+            <div class="mb-4">
                 <h1 class="text-3xl font-bold text-gray-900">{{ t('manageFees') }}</h1>
                 <p class="text-gray-600">{{ t('manageFeesDesc') }}</p>
             </div>
@@ -19,7 +19,7 @@
         </div>
 
         <!-- Current Month Display -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+        <div class=" bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p class="text-sm text-blue-800">
                 <Icon name="material-symbols:calendar-month" class="inline mr-1"></Icon>
                 {{ t('currentMonth') }}: <strong>{{ monthNames[currentMonth] }}</strong>
@@ -45,6 +45,10 @@
                        type="text"
                        :placeholder="t('searchByNamePhoneRoom')"
                        class="flex-1 outline-none text-gray-800" />
+                <div class="text-sm text-gray-500">
+                    {{ localizeNumber(filteredResidents.length) }}
+                    {{ t('found') }}
+                </div>
             </div>
 
             <!-- Status Filter -->
@@ -87,10 +91,6 @@
                 </button>
             </div>
 
-            <div class="text-sm text-gray-500">
-                {{ localizeNumber(filteredResidents.length) }}
-                {{ t('found') }}
-            </div>
         </div>
 
         <div v-if="pending"
@@ -112,7 +112,7 @@
                     <div class="flex items-center gap-3">
                         <div
                              class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-semibold text-sm">
-                            {{ localizeNumber(index + 1) }}
+                            {{ localizeNumber((currentPage - 1) * pageSize + index + 1) }}
                         </div>
                         <img :src="resident.avatar || placeholderAvatar"
                              class="h-14 w-14 rounded-full object-cover border border-gray-200"
@@ -169,7 +169,7 @@
             </div>
 
             <!-- Pagination -->
-            <div v-if="!searchTerm && !statusFilter && totalPages > 1"
+            <div v-if="totalPages > 1"
                  class="flex justify-center items-center gap-2 mt-6">
                 <button @click="goToPage(currentPage - 1)"
                         :disabled="currentPage === 1"
@@ -276,8 +276,24 @@ const isAdmin = computed(() => userProfile.value?.is_admin ?? false)
 const canManageFees = computed(() => isAdmin.value || canManageForHostel(hostelSlug, 'fees'))
 
 const searchTerm = ref('')
+const debouncedSearchTerm = ref('')
 const statusFilter = ref<'all' | 'paid' | 'partial' | 'unpaid'>('all')
 const currentPage = ref(navigationStore.getLastPage(pageKey.value))
+
+// Debounce search input
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+watch(searchTerm, (newValue) => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = setTimeout(() => {
+        debouncedSearchTerm.value = newValue
+        currentPage.value = 1 // Reset to first page on search
+    }, 300)
+})
+
+// Reset to first page when status filter changes
+watch(statusFilter, () => {
+    currentPage.value = 1
+})
 
 // Month names
 const monthNames = [
@@ -286,16 +302,18 @@ const monthNames = [
 ]
 
 const { data: apiResponse, pending, error, refresh } = useAsyncData(
-    () => `fees-${hostelSlug}-page-${currentPage.value}`,
+    () => `fees-${hostelSlug}-page-${currentPage.value}-status-${statusFilter.value}-search-${debouncedSearchTerm.value}`,
     () => $fetch('/api/manage-fees/get-residents-with-fees', {
         query: {
             hostel_slug: hostelSlug,
             limit: pageSize,
-            offset: (currentPage.value - 1) * pageSize
+            offset: (currentPage.value - 1) * pageSize,
+            status_filter: statusFilter.value,
+            search: debouncedSearchTerm.value || undefined
         }
     }),
     {
-        watch: [currentPage],
+        watch: [currentPage, statusFilter, debouncedSearchTerm],
         getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
     }
 )
@@ -305,34 +323,13 @@ const totalResidents = computed(() => apiResponse.value?.total || 0)
 const currentMonth = computed(() => apiResponse.value?.current_month ?? new Date().getMonth())
 const totalPages = computed(() => Math.ceil(totalResidents.value / pageSize))
 
-// Status counts
+// Status counts - these show counts from current page results
 const paidCount = computed(() => residents.value.filter((r: ResidentWithFees) => r.payment_status === 'paid').length)
 const partialCount = computed(() => residents.value.filter((r: ResidentWithFees) => r.payment_status === 'partial').length)
 const unpaidCount = computed(() => residents.value.filter((r: ResidentWithFees) => r.payment_status === 'unpaid').length)
 
-const filteredResidents = computed(() => {
-    let filtered = residents.value
-
-    // Apply status filter
-    if (statusFilter.value !== 'all') {
-        filtered = filtered.filter((r: ResidentWithFees) => r.payment_status === statusFilter.value)
-    }
-
-    // Apply search filter
-    if (searchTerm.value.trim()) {
-        const term = searchTerm.value.trim().toLowerCase()
-        filtered = filtered.filter((r: ResidentWithFees) => {
-            const fullName = `${r.first_name} ${r.last_name}`.toLowerCase()
-            return (
-                fullName.includes(term) ||
-                stripPhonePrefix(r.phone_number).toLowerCase().includes(term) ||
-                (r.room || '').toLowerCase().includes(term)
-            )
-        })
-    }
-
-    return filtered
-})
+// Since search and filter are now server-side, filteredResidents just returns the API results
+const filteredResidents = computed(() => residents.value)
 
 const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages.value) {
