@@ -290,16 +290,16 @@ const days = computed(() => [
 
 const activeView = ref<'analytics' | 'manage'>('analytics')
 
-// useAsyncData properly caches in SPA mode
-const { data: mealsData, pending: loading, refresh } = useAsyncData(
+// useCachedAsyncData provides proper caching for SPA navigation
+const { data: mealsData, pending: loading, refresh } = useCachedAsyncData(
   `meals-${hostelSlug}`,
   () => $fetch<{ success: boolean; meals: Meal[] }>(`/api/manage-meals/list`, {
     query: { hostel_slug: hostelSlug }
   })
 )
 
-// Fetch analytics data
-const { data: analyticsResponse, pending: analyticsLoading, refresh: refreshAnalytics } = useAsyncData(
+// Fetch analytics data with caching for SPA navigation
+const { data: analyticsResponse, pending: analyticsLoading, refresh: refreshAnalytics } = useCachedAsyncData(
   `meals-analytics-${hostelSlug}`,
   () => $fetch<AnalyticsResponse>(`/api/manage-meals/analytics`, {
     query: { hostel_slug: hostelSlug }
