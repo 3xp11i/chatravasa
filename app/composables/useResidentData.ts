@@ -1,55 +1,80 @@
 /**
- * Composable for managing resident data with caching
+ * Composable for managing resident data with caching using useCachedAsyncData
  * Prevents unnecessary refetches when navigating back and forth
  */
 export const useResidentData = () => {
-  const store = useResidentStore();
+  interface ResidentData {
+    name: string;
+    room: string;
+    hasProfile: boolean;
+    hasResident: boolean;
+  }
 
-  const load = async () => {
-    try {
-      await store.fetchResidentData();
-      await store.fetchInRoomStatus();
-    } catch (error) {
-      console.error('Failed to load resident data:', error);
-      throw error;
-    }
-  };
+  interface InRoomStatus {
+    success: boolean;
+    inRoom: boolean;
+  }
 
+  // Fetch resident profile data with caching
+  const { data: residentData, pending: loading, error: fetchError, refresh: refreshProfile } = useCachedAsyncData(
+    'resident-profile-data',
+    () => $fetch<ResidentData>('/api/resident/me', { method: 'GET' })
+  );
+
+  // Fetch in-room status with caching
+  const { data: inRoomData, pending: inRoomLoading, refresh: refreshInRoom } = useCachedAsyncData(
+    'resident-inroom-status',
+    () => $fetch<InRoomStatus>('/api/resident/update-in-room', { method: 'GET' })
+  );
+
+  const statusError = ref('');
+
+  // Toggle in-room status
   const toggleInRoom = async () => {
+    statusError.value = '';
+    const currentStatus = inRoomData.value?.inRoom ?? true;
+    
     try {
-      await store.toggleInRoom();
-    } catch (error) {
-      console.error('Failed to toggle in-room status:', error);
-      throw error;
+      await $fetch('/api/resident/update-in-room', {
+        method: 'POST',
+        body: { inRoom: !currentStatus },
+      });
+
+      // Refresh the in-room status after successful toggle
+      await refreshInRoom();
+    } catch (err: any) {
+      statusError.value = err?.data?.statusMessage || err?.message || 'Failed to update status';
+      throw err;
     }
   };
 
+  // Refresh all data
   const refresh = async () => {
-    await store.refresh();
+    await Promise.all([refreshProfile(), refreshInRoom()]);
   };
 
   return {
     // Reactive state
-    residentData: computed(() => store.residentData),
+    residentData,
     firstName: computed(() => {
-      const data = store.residentData as any;
+      const data = residentData.value as any;
       if (data?.first_name) return data.first_name as string;
       const parts = (data?.name || '').split(' ');
       return parts[0] || 'Resident';
     }),
-    residentRoom: computed(() => store.residentData?.room || ''),
+    residentRoom: computed(() => residentData.value?.room || ''),
     inRoom: computed(() => {
-      // If inRoomStatus is null or undefined, default to true (in-room)
-      return store.inRoomStatus === undefined || store.inRoomStatus === null ? true : store.inRoomStatus;
+      // If inRoom is null or undefined, default to true (in-room)
+      const status = inRoomData.value?.inRoom;
+      return status === undefined || status === null ? true : status;
     }),
-    loading: computed(() => store.loading),
-    inRoomLoading: computed(() => store.inRoomLoading),
-    error: computed(() => store.error),
-    statusError: computed(() => store.statusError),
-    detailsLoading: computed(() => store.loading),
+    loading,
+    inRoomLoading,
+    error: computed(() => fetchError.value ? 'Failed to load resident info' : ''),
+    statusError: computed(() => statusError.value),
+    detailsLoading: loading,
 
     // Methods
-    load,
     toggleInRoom,
     refresh,
   };

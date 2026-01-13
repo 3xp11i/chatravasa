@@ -162,17 +162,11 @@ definePageMeta({
     name: 'resident-meals',
 });
 
-const authUser = useSupabaseUser();
-
 const {
     meals: hostelMeals,
-    weeklyStatus,
-    overrides,
-    weeklyMenu,
     loading,
     error,
     statusError,
-    load,
     setDailyChoice,
     toggleWeeklyChoice,
     servedMealsForDay,
@@ -222,22 +216,10 @@ function rebuildDailyChoices() {
     tomorrowChoices.value = tm;
 }
 
-onMounted(async () => {
-    // Load data only on first mount; cached on subsequent visits
-    await load();
+// Watch for data changes and rebuild daily choices
+watch(hostelMeals, () => {
     rebuildDailyChoices();
-});
-
-watch(
-    authUser,
-    async (newUser) => {
-        if (newUser?.id) {
-            await load();
-            rebuildDailyChoices();
-        }
-    },
-    { immediate: true },
-);
+}, { immediate: true });
 
 async function handleSetDailyChoice(mealId: string, day: 'today' | 'tomorrow', choice: boolean) {
     const dateStr = day === 'today' ? todayStr.value : tomorrowStr.value;
@@ -257,6 +239,7 @@ async function handleSetDailyChoice(mealId: string, day: 'today' | 'tomorrow', c
 
     try {
         await setDailyChoice(mealId, dateStr, choice);
+        rebuildDailyChoices();
     } catch (err) {
         console.error('[meals-page] Update-daily error:', err);
     }

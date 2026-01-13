@@ -1,30 +1,119 @@
 /**
- * Composable for managing meals data with caching
+ * Composable for managing meals data with caching using useCachedAsyncData
  * Prevents unnecessary refetches when navigating back and forth
  */
 export const useMealsData = () => {
-  const store = useMealsStore();
+  interface HostelMeal {
+    id: string;
+    name: string;
+    timing: string;
+    weekdays: number[];
+    status_deadline: number;
+  }
 
-  const load = async () => {
+  interface WeeklyStatus {
+    meal_id: string;
+    is_opted_weekdays: number[];
+    not_opted_weekdays: number[];
+  }
+
+  interface DailyOverride {
+    meal_id: string;
+    meal_date: string;
+    is_opted: boolean;
+  }
+
+  interface WeeklyMenuItem {
+    hostel_meal_id: string;
+    weekdays: number[];
+    food: string;
+  }
+
+  interface MealsData {
+    meals: HostelMeal[];
+    weeklyStatus: WeeklyStatus[];
+    overrides: DailyOverride[];
+    weeklyMenu: WeeklyMenuItem[];
+  }
+
+  // Fetch meals data with caching
+  const { data: mealsData, pending: loading, error: fetchError, refresh } = useCachedAsyncData(
+    'resident-meals-data',
+    () => $fetch<MealsData>('/api/resident/meals')
+  );
+
+  const statusError = ref('');
+
+  // Transform API response to computed properties
+  const meals = computed(() => mealsData.value?.meals || []);
+
+  const weeklyStatus = computed(() => {
+    const map: Record<string, { isOpted: number[]; notOpted: number[] }> = {};
+    mealsData.value?.weeklyStatus?.forEach((row) => {
+      if (row.meal_id) {
+        map[row.meal_id] = {
+          isOpted: row.is_opted_weekdays || [],
+          notOpted: row.not_opted_weekdays || [],
+        };
+      }
+    });
+    
+    // Sanitize: only include weekdays that are actually served
+    const mealIndex: Record<string, number[]> = {};
+    meals.value.forEach((meal) => {
+      mealIndex[meal.id] = Array.isArray(meal.weekdays) ? meal.weekdays : [];
+    });
+
+    const sanitized: Record<string, { isOpted: number[]; notOpted: number[] }> = {};
+    Object.entries(map).forEach(([mealId, status]) => {
+      const allowed = new Set(mealIndex[mealId] || []);
+      sanitized[mealId] = {
+        isOpted: (status?.isOpted || []).filter((d) => allowed.has(d)),
+        notOpted: (status?.notOpted || []).filter((d) => allowed.has(d)),
+      };
+    });
+
+    return sanitized;
+  });
+
+  const overrides = computed(() => {
+    const map: Record<string, boolean> = {};
+    mealsData.value?.overrides?.forEach((row) => {
+      map[`${row.meal_id}:${row.meal_date}`] = row.is_opted;
+    });
+    return map;
+  });
+
+  const weeklyMenu = computed(() => mealsData.value?.weeklyMenu || []);
+
+  // Update daily choice
+  const setDailyChoice = async (mealId: string, dateStr: string, isOpted: boolean) => {
+    statusError.value = '';
+    
     try {
-      await store.fetchMealsData();
-    } catch (error) {
-      console.error('Failed to load meals data:', error);
-      throw error;
+      const result = await $fetch('/api/resident/meals/update-daily', {
+        method: 'POST',
+        body: { mealId, date: dateStr, isOpted },
+      });
+
+      if (!result?.success) {
+        statusError.value = 'Failed to update meal choice';
+        throw new Error('Update failed');
+      }
+
+      // Refresh data after successful update
+      await refresh();
+      return result;
+    } catch (err: any) {
+      statusError.value = err?.data?.message || err?.message || 'Failed to update meal choice';
+      throw err;
     }
   };
 
-  const setDailyChoice = async (mealId: string, dateStr: string, choice: boolean) => {
-    try {
-      await store.updateDailyChoice(mealId, dateStr, choice);
-    } catch (error) {
-      console.error('Failed to update daily choice:', error);
-      throw error;
-    }
-  };
-
+  // Update weekly preference
   const toggleWeeklyChoice = async (mealId: string, weekday: number, choice?: boolean) => {
-    const current = store.weeklyStatus[mealId] || { isOpted: [], notOpted: [] };
+    statusError.value = '';
+    const current = weeklyStatus.value[mealId] || { isOpted: [], notOpted: [] };
 
     let finalChoice: boolean;
     if (choice !== undefined) {
@@ -36,43 +125,51 @@ export const useMealsData = () => {
     }
 
     try {
-      await store.updateWeeklyPreference(mealId, weekday, finalChoice);
-    } catch (error) {
-      console.error('Failed to update weekly preference:', error);
-      throw error;
-    }
-  };
+      const result = await $fetch('/api/resident/meals/update-weekly', {
+        method: 'POST',
+        body: { mealId, weekday, choice: finalChoice },
+      });
 
-  const refresh = async () => {
-    await store.refresh();
+      if (!result?.success) {
+        statusError.value = 'Failed to update weekly preference';
+        throw new Error('Update failed');
+      }
+
+      // Refresh data after successful update
+      await refresh();
+      return result;
+    } catch (err: any) {
+      statusError.value = err?.data?.message || err?.message || 'Failed to update weekly preference';
+      throw err;
+    }
   };
 
   // Helper functions
   const servedMealsForDay = (weekday: number) => {
-    return store.meals.filter((m) => Array.isArray(m.weekdays) && m.weekdays.includes(weekday));
+    return meals.value.filter((m) => Array.isArray(m.weekdays) && m.weekdays.includes(weekday));
   };
 
   const isMealServed = (mealId: string, weekday: number) => {
-    const meal = store.meals.find((m) => m.id === mealId);
+    const meal = meals.value.find((m) => m.id === mealId);
     return !!meal && Array.isArray(meal.weekdays) && meal.weekdays.includes(weekday);
   };
 
   const getWeeklyMenuFood = (weekday: number, mealId: string) => {
-    const entry = store.weeklyMenu.find((row) => row.hostel_meal_id === mealId && row.weekdays.includes(weekday));
+    const entry = weeklyMenu.value.find((row) => row.hostel_meal_id === mealId && row.weekdays.includes(weekday));
     return entry?.food || '-';
   };
 
   const initialChoice = (mealId: string, dateStr: string) => {
     const key = `${mealId}:${dateStr}`;
     // If there's an override, use it
-    if (key in store.overrides) {
-      return store.overrides[key];
+    if (key in overrides.value) {
+      return overrides.value[key];
     }
     // Otherwise, check weekly preference
     // Parse date string (YYYY-MM-DD) in local timezone
     const [year, month, day] = dateStr.split('-').map(Number);
     const weekday = new Date(year, month - 1, day).getDay();
-    const status = store.weeklyStatus[mealId];
+    const status = weeklyStatus.value[mealId];
     if (status) {
       if (status.isOpted.includes(weekday)) return true;
       if (status.notOpted.includes(weekday)) return false;
@@ -81,15 +178,15 @@ export const useMealsData = () => {
   };
 
   const isWeeklyYes = (mealId: string, weekday: number) => {
-    return store.weeklyStatus[mealId]?.isOpted.includes(weekday) || false;
+    return weeklyStatus.value[mealId]?.isOpted.includes(weekday) || false;
   };
 
   const isWeeklyNo = (mealId: string, weekday: number) => {
-    return store.weeklyStatus[mealId]?.notOpted.includes(weekday) || false;
+    return weeklyStatus.value[mealId]?.notOpted.includes(weekday) || false;
   };
 
   const isMealEditable = (mealId: string, dateStr: string) => {
-    const meal = store.meals.find((m) => m.id === mealId);
+    const meal = meals.value.find((m) => m.id === mealId);
     if (!meal) return false;
 
     const deadlineHours = meal.status_deadline || 0;
@@ -111,17 +208,17 @@ export const useMealsData = () => {
 
   return {
     // Reactive state
-    meals: computed(() => store.meals),
-    weeklyStatus: computed(() => store.weeklyStatus),
-    overrides: computed(() => store.overrides),
-    weeklyMenu: computed(() => store.weeklyMenu),
-    loading: computed(() => store.loading),
-    error: computed(() => store.error),
-    statusError: computed(() => store.statusError),
-    isInitialized: computed(() => store.isInitialized),
+    meals,
+    weeklyStatus,
+    overrides,
+    weeklyMenu,
+    loading,
+    error: computed(() => fetchError.value ? 'Failed to load meals data' : ''),
+    statusError: computed(() => statusError.value),
+    isInitialized: computed(() => mealsData.value !== null && mealsData.value !== undefined),
 
     // Methods
-    load,
+    load: refresh, // Alias for consistency
     setDailyChoice,
     toggleWeeklyChoice,
     refresh,

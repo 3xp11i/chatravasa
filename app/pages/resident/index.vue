@@ -47,26 +47,19 @@ definePageMeta({
   name: 'resident-home',
 });
 
-const { loading, fetchUserProfile } = useCurrentUser();
 const {
   firstName,
   residentRoom,
   inRoom,
-  loading: dataLoading,
+  loading,
   inRoomLoading,
   detailsLoading,
   error: fetchError,
   statusError,
-  load,
   toggleInRoom,
 } = useResidentData();
 
 const updatingStatus = ref(false);
-
-onMounted(async () => {
-  // Load data only on first mount; cached on subsequent visits
-  await load();
-});
 
 async function handleToggleInRoom() {
   updatingStatus.value = true;
