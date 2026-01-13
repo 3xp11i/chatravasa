@@ -144,7 +144,7 @@
         </div>
       </div>
 
-      <!-- Weekly Food Schedule Table (Meals as rows, Days as columns) -->
+      <!-- Weekly Food Schedule Table (meals as rows, days as columns, improved UI) -->
       <div>
         <h2 class="text-lg font-semibold text-gray-900 mb-3">{{ t('weeklyFoodSchedule') }}</h2>
         <p class="text-sm text-gray-600 mb-4">{{ t('foodScheduleDesc') }}</p>
@@ -156,22 +156,22 @@
           </button>
         </div>
         <div v-else class="overflow-x-auto bg-white rounded-lg shadow">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="min-w-full border-separate" style="border-spacing: 0;">
+            <thead class="bg-gray-50 border-b border-gray-400">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('meal') }}</th>
-                <th v-for="d in days" :key="'menu-header-day-' + d.value" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="min-width: 120px;">
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 z-10 bg-green-50 border-r-2 border-gray-400">{{ t('meal') }}</th>
+                <th v-for="d in days" :key="'menu-header-day-' + d.value" class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-r-2 border-gray-400" :class="[analyticsData?.value?.todayWeekday === d.value ? 'bg-green-50' : '']" style="min-width: 120px;">
                   {{ d.labelLong }}
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
               <tr v-for="meal in meals" :key="'menu-row-' + meal.id" class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap sticky left-0 bg-green-50 z-10 border-r-2 border-gray-400">
                   <div>{{ meal.name }}</div>
                   <div class="text-xs font-normal text-gray-500 normal-case">{{ formatTime(meal.timing) }}</div>
                 </td>
-                <td v-for="d in days" :key="'menu-cell-' + meal.id + '-' + d.value" class="px-4 py-3 text-sm text-gray-700" style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal;">
+                <td v-for="d in days" :key="'menu-cell-' + meal.id + '-' + d.value" :class="['px-4 py-3 text-sm text-gray-700 border-r-2 border-gray-400', analyticsData?.value?.todayWeekday === d.value ? 'bg-green-200' : '']" style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal; border-bottom: 2px solid #9ca3af;">
                   <span v-if="meal.weekdays.includes(d.value)">{{ meal.menu?.[d.value] || '—' }}</span>
                   <span v-else class="text-gray-300">—</span>
                 </td>

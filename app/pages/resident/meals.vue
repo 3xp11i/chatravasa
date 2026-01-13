@@ -72,26 +72,29 @@
                     </div>
                 </div>
 
-                <!-- Weekly Preferences Table -->
+                <!-- Weekly Preferences Table (Meals as columns, highlight current day, sticky meal names, visible borders) -->
                 <div class="mb-8">
                     <h2 class="text-2xl font-semibold mb-4">Weekly Preferences</h2>
                     <p class="text-sm text-text-muted mb-4">Set your preference for each meal on each day of the week</p>
                     <div v-if="!hostelMeals.length" class="text-text-muted text-sm">No meals found for your hostel.</div>
                     <div v-else class="overflow-x-auto bg-surface rounded-lg border border-surface-200">
-                        <table class="w-full">
-                            <thead class="bg-gray-50 border-b border-surface-200">
+                        <table class="w-full border-separate" style="border-spacing: 0;">
+                            <thead class="bg-gray-50 border-b border-gray-400">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Weekday</th>
-                                    <th v-for="meal in hostelMeals" :key="'header-' + meal.id" class="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider sticky left-0 z-10 bg-green-50 border-r-2 border-gray-400">Weekday</th>
+                                    <th v-for="meal in hostelMeals" :key="'header-' + meal.id"
+                                        class="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-r-2 border-gray-400">
                                         <div>{{ meal.name }}</div>
                                         <div class="text-xs font-normal text-gray-500 normal-case">{{ meal.timing }}</div>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-surface-200">
+                            <tbody>
                                 <tr v-for="(day, dayIdx) in weekDays" :key="'pref-' + dayIdx" class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-medium text-gray-900">{{ day }}</td>
-                                    <td v-for="meal in hostelMeals" :key="'pref-' + meal.id + '-' + dayIdx" class="px-3 py-3 text-center">
+                                    <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-green-50 z-10 border-r-2 border-gray-400">{{ day }}</td>
+                                    <td v-for="meal in hostelMeals" :key="'pref-' + meal.id + '-' + dayIdx"
+                                        :class="['px-3 py-3 text-center border-r-2 border-gray-400', todayWeekday === dayIdx ? 'bg-green-200' : '']"
+                                        style="border-bottom: 2px solid #9ca3af;">
                                         <template v-if="isMealServed(meal.id, dayIdx)">
                                             <button
                                                 class="pill-small"
@@ -110,28 +113,32 @@
                     </div>
                 </div>
 
-                <!-- Weekly Menu Table (Meals as rows, Days as columns) -->
+                <!-- Weekly Menu Table (Meals as rows, Days as columns, highlight current day) -->
                 <div>
                     <h2 class="text-2xl font-semibold mb-4">Weekly Menu</h2>
                     <p class="text-sm text-text-muted mb-4">View what's being served each day</p>
                     <div v-if="!hostelMeals.length" class="text-text-muted text-sm">No meals found for your hostel.</div>
                     <div v-else class="overflow-x-auto bg-surface rounded-lg border border-surface-200">
-                        <table class="w-full">
-                            <thead class="bg-gray-50 border-b border-surface-200">
+                        <table class="w-full border-separate" style="border-spacing: 0;">
+                            <thead class="bg-gray-50 border-b border-gray-400">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Meal</th>
-                                    <th v-for="(day, dayIdx) in weekDays" :key="'menu-header-day-' + dayIdx" class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider" style="min-width: 120px;">
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider sticky left-0 z-10 bg-green-50 border-r-2 border-gray-400">Meal</th>
+                                    <th v-for="(day, dayIdx) in weekDays" :key="'menu-header-day-' + dayIdx"
+                                        :class="['px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-r-2 border-gray-400', todayWeekday === dayIdx ? 'bg-green-50' : '']"
+                                        style="min-width: 120px;">
                                         {{ day }}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-surface-200">
+                            <tbody>
                                 <tr v-for="meal in hostelMeals" :key="'menu-row-' + meal.id" class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                                    <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap sticky left-0 bg-green-50 z-10 border-r-2 border-gray-400">
                                         <div>{{ meal.name }}</div>
                                         <div class="text-xs font-normal text-gray-500 normal-case">{{ meal.timing }}</div>
                                     </td>
-                                    <td v-for="(day, dayIdx) in weekDays" :key="'menu-cell-' + meal.id + '-' + dayIdx" class="px-4 py-3 text-sm text-gray-700" style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal;">
+                                    <td v-for="(day, dayIdx) in weekDays" :key="'menu-cell-' + meal.id + '-' + dayIdx"
+                                        :class="['px-4 py-3 text-sm text-gray-700 border-r-2 border-gray-400', todayWeekday === dayIdx ? 'bg-green-200' : '']"
+                                        style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal; border-bottom: 2px solid #9ca3af;">
                                         <template v-if="isMealServed(meal.id, dayIdx)">
                                             <span>{{ getWeeklyMenuFood(dayIdx, meal.id) }}</span>
                                         </template>
