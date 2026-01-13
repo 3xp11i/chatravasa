@@ -19,7 +19,7 @@ import bgAdmin from '@/assets/images/bg_admin.png'
 import bgResident from '@/assets/images/bg_resident.png'
 
 const { isAdmin } = useCurrentUser()
-const isStaff  = useStaffContext().isStaff
+const { isStaff } = useStaffContext()
 
 const backgroundImage = computed(() => {
   return (isAdmin.value || isStaff.value) ? bgAdmin : bgResident

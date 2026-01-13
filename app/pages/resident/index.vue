@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background text-text px-4 py-8">
+  <div class="text-text px-4 py-8">
     <div class="card">
       <h1 class="text-3xl font-bold mb-2" v-if="!detailsLoading">Namaste, {{ firstName || 'Resident' }}</h1>
       <div v-else class="h-10 bg-gray-200 rounded animate-shimmer mb-2"></div>

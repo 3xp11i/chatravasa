@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-background text-text px-4 py-8">
+    <div class="text-text px-4 py-8">
         <div class="card space-y-8">
             <div class="flex items-center justify-between">
                 <h1 class="text-3xl font-bold">Meals Planner</h1>

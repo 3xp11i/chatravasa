@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background text-text px-4 py-8">
+  <div class="text-text px-4 py-8">
     <div class="mx-auto">
       <template v-if="authChecking">
         <div class="min-h-[70vh] flex items-center justify-center">

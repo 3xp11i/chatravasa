@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background text-text px-4 py-8">
+  <div class="text-text px-4 py-8">
     <div class="card space-y-6">
       <!-- Header -->
       <div class="flex flex-row justify-between items-center">
