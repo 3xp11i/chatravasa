@@ -3,21 +3,21 @@
     <div class="card">
       <h1 class="text-3xl font-bold mb-2" v-if="!detailsLoading">Namaste, {{ firstName || 'Resident' }}</h1>
       <div v-else class="h-10 bg-gray-200 rounded animate-shimmer mb-2"></div>
-      <p class="text-text-muted mb-8" v-if="!detailsLoading">Room: {{ residentRoom || 'Not Assigned' }}</p>
-      <div v-else class="h-6 bg-gray-200 rounded animate-shimmer mb-8 w-1/2"></div>
+      <p class="text-text-muted mb-6" v-if="!detailsLoading">Room: {{ residentRoom || 'Not Assigned' }}</p>
+      <div v-else class="h-6 bg-gray-200 rounded animate-shimmer mb-6 w-1/2"></div>
 
       <!-- In-Room Status Button -->
+      <p class="text-xs text-text-muted mt-2 text-center">Tap to change in-room status</p>
       <div v-if="inRoomLoading" class="w-full mb-4 py-3 px-4 h-12 bg-gray-300 rounded-lg animate-shimmer"></div>
       <button
         v-else
-        class="w-full mb-4 py-3 px-4 rounded-lg font-semibold transition-colors"
+        class="w-full mb-6 py-3 px-4 rounded-lg font-semibold transition-colors"
         :class="inRoom ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'"
         @click="handleToggleInRoom"
         :disabled="updatingStatus"
       >
         {{ updatingStatus ? 'Updating...' : (inRoom ? 'In-Room' : 'Out of Room') }}
       </button>
-      <p class="text-xs text-text-muted mb-6 text-center">Tap to change in-room status</p>
 
       <!-- Meals and Complaints Links -->
       <div class="space-y-3">
