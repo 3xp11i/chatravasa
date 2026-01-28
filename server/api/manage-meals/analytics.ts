@@ -1,5 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
 import { isStaffForHostel, staffHasPermission } from "#imports"
+import { Database } from "~/types/database.types"
 
 export default defineEventHandler(async (event) => {
   try {

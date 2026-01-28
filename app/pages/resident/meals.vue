@@ -6,8 +6,8 @@
                 <span v-if="hostelMeals.length" class="text-sm text-text-muted">Meals: {{ hostelMeals.length }}</span>
             </div>
 
-            <div v-if="loading">Loading meals…</div>
-            <div v-else>
+            <div v-if="loading && !hostelMeals.length">Loading meals…</div>
+            <div v-else-if="!loading || hostelMeals.length">
                 <p v-if="error" class="text-red-600 text-sm mb-6">{{ error }}</p>
 
                 <!-- Today / Tomorrow -->
@@ -124,6 +124,7 @@
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider sticky left-0 z-10 bg-green-50 border-r-2 border-gray-400">Meal</th>
                                     <th v-for="(day, dayIdx) in weekDays" :key="'menu-header-day-' + dayIdx"
+                                        :ref="el => { if (todayWeekday === dayIdx) todayColumnRef = el as HTMLElement }"
                                         :class="['px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-r-2 border-gray-400', todayWeekday === dayIdx ? 'bg-green-50' : '']"
                                         style="min-width: 120px;">
                                         {{ day }}
@@ -180,6 +181,16 @@ const {
 
 const todayChoices = ref<Record<string, boolean | undefined>>({});
 const tomorrowChoices = ref<Record<string, boolean | undefined>>({});
+const todayColumnRef = ref<HTMLElement | null>(null);
+
+// Scroll to today's column in the Weekly Menu table on mount
+onMounted(() => {
+    nextTick(() => {
+        if (todayColumnRef.value) {
+            todayColumnRef.value.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    });
+});
 
 // Helper to get local date string in YYYY-MM-DD format
 const getLocalDateStr = (date: Date) => {

@@ -1,6 +1,7 @@
 /**
  * Composable for managing meals data with caching using useCachedAsyncData
  * Prevents unnecessary refetches when navigating back and forth
+ * Implements optimistic updates for instant UI feedback
  */
 export const useMealsData = () => {
   interface HostelMeal {
@@ -44,6 +45,14 @@ export const useMealsData = () => {
 
   const statusError = ref('');
 
+  // Optimistic state for weekly preferences (overrides server data temporarily)
+  // Key format: "mealId:weekday" -> true (yes), false (no), undefined (use server data)
+  const optimisticWeekly = ref<Record<string, boolean | undefined>>({});
+  
+  // Optimistic state for daily overrides
+  // Key format: "mealId:dateStr" -> true (yes), false (no), undefined (use server data)
+  const optimisticDaily = ref<Record<string, boolean | undefined>>({});
+
   // Transform API response to computed properties
   const meals = computed(() => mealsData.value?.meals || []);
 
@@ -86,9 +95,14 @@ export const useMealsData = () => {
 
   const weeklyMenu = computed(() => mealsData.value?.weeklyMenu || []);
 
-  // Update daily choice
+  // Update daily choice with optimistic update
   const setDailyChoice = async (mealId: string, dateStr: string, isOpted: boolean) => {
     statusError.value = '';
+    const key = `${mealId}:${dateStr}`;
+    const previousValue = optimisticDaily.value[key];
+    
+    // Optimistic update - immediately update UI
+    optimisticDaily.value = { ...optimisticDaily.value, [key]: isOpted };
     
     try {
       const result = await $fetch('/api/resident/meals/update-daily', {
@@ -97,32 +111,46 @@ export const useMealsData = () => {
       });
 
       if (!result?.success) {
+        // Revert optimistic update on failure
+        optimisticDaily.value = { ...optimisticDaily.value, [key]: previousValue };
         statusError.value = 'Failed to update meal choice';
         throw new Error('Update failed');
       }
 
-      // Refresh data after successful update
+      // Refresh to get server data, then clear optimistic state
       await refresh();
+      delete optimisticDaily.value[key];
+      optimisticDaily.value = { ...optimisticDaily.value };
       return result;
     } catch (err: any) {
+      // Revert optimistic update on error
+      optimisticDaily.value = { ...optimisticDaily.value, [key]: previousValue };
       statusError.value = err?.data?.message || err?.message || 'Failed to update meal choice';
       throw err;
     }
   };
 
-  // Update weekly preference
+  // Update weekly preference with optimistic update
   const toggleWeeklyChoice = async (mealId: string, weekday: number, choice?: boolean) => {
     statusError.value = '';
+    const key = `${mealId}:${weekday}`;
+    const previousOptimistic = optimisticWeekly.value[key];
+    
+    // Determine current state (check optimistic first, then server data)
     const current = weeklyStatus.value[mealId] || { isOpted: [], notOpted: [] };
+    const isCurrentlyYes = optimisticWeekly.value[key] === true || 
+      (optimisticWeekly.value[key] === undefined && current.isOpted.includes(weekday));
 
     let finalChoice: boolean;
     if (choice !== undefined) {
       finalChoice = choice;
     } else {
       // Toggle: if currently yes, switch to no; otherwise set to yes
-      const isCurrentlyYes = current.isOpted.includes(weekday);
       finalChoice = !isCurrentlyYes;
     }
+
+    // Optimistic update - immediately update UI
+    optimisticWeekly.value = { ...optimisticWeekly.value, [key]: finalChoice };
 
     try {
       const result = await $fetch('/api/resident/meals/update-weekly', {
@@ -131,14 +159,20 @@ export const useMealsData = () => {
       });
 
       if (!result?.success) {
+        // Revert optimistic update on failure
+        optimisticWeekly.value = { ...optimisticWeekly.value, [key]: previousOptimistic };
         statusError.value = 'Failed to update weekly preference';
         throw new Error('Update failed');
       }
 
-      // Refresh data after successful update
+      // Refresh to get server data, then clear optimistic state
       await refresh();
+      delete optimisticWeekly.value[key];
+      optimisticWeekly.value = { ...optimisticWeekly.value };
       return result;
     } catch (err: any) {
+      // Revert optimistic update on error
+      optimisticWeekly.value = { ...optimisticWeekly.value, [key]: previousOptimistic };
       statusError.value = err?.data?.message || err?.message || 'Failed to update weekly preference';
       throw err;
     }
@@ -160,18 +194,32 @@ export const useMealsData = () => {
   };
 
   const initialChoice = (mealId: string, dateStr: string) => {
-    const key = `${mealId}:${dateStr}`;
-    // If there's an override, use it
-    if (key in overrides.value) {
-      return overrides.value[key];
+    const dailyKey = `${mealId}:${dateStr}`;
+    
+    // Check optimistic daily state first
+    if (dailyKey in optimisticDaily.value) {
+      return optimisticDaily.value[dailyKey];
     }
-    // Otherwise, check weekly preference
-    // Parse date string (YYYY-MM-DD) in local timezone
+    
+    // Check server daily override
+    if (dailyKey in overrides.value) {
+      return overrides.value[dailyKey];
+    }
+    
+    // Parse date to get weekday
     const parts = dateStr.split('-').map(Number);
     const year = parts[0] || 0;
     const month = parts[1] || 1;
     const day = parts[2] || 1;
     const weekday = new Date(year, month - 1, day).getDay();
+    
+    // Check optimistic weekly state
+    const weeklyKey = `${mealId}:${weekday}`;
+    if (weeklyKey in optimisticWeekly.value) {
+      return optimisticWeekly.value[weeklyKey];
+    }
+    
+    // Check server weekly preference
     const status = weeklyStatus.value[mealId];
     if (status) {
       if (status.isOpted.includes(weekday)) return true;
@@ -181,10 +229,22 @@ export const useMealsData = () => {
   };
 
   const isWeeklyYes = (mealId: string, weekday: number) => {
+    const key = `${mealId}:${weekday}`;
+    // Check optimistic state first
+    if (key in optimisticWeekly.value) {
+      return optimisticWeekly.value[key] === true;
+    }
+    // Fall back to server data
     return weeklyStatus.value[mealId]?.isOpted.includes(weekday) || false;
   };
 
   const isWeeklyNo = (mealId: string, weekday: number) => {
+    const key = `${mealId}:${weekday}`;
+    // Check optimistic state first
+    if (key in optimisticWeekly.value) {
+      return optimisticWeekly.value[key] === false;
+    }
+    // Fall back to server data
     return weeklyStatus.value[mealId]?.notOpted.includes(weekday) || false;
   };
 

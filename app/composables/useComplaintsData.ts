@@ -31,31 +31,36 @@ export const useComplaintsData = () => {
   }
 
   const currentFilter = ref<'my' | 'public' | undefined>(undefined)
-
-  // Fetch complaints with caching - key includes filter for separate cache entries
-  const cacheKey = computed(() => 
-    currentFilter.value 
-      ? `resident-complaints-${currentFilter.value}` 
-      : 'resident-complaints-all'
-  )
-
-  const { data: complaintsData, pending: loading, error: fetchError, refresh } = useCachedAsyncData(
-    cacheKey.value,
-    () => {
-      const query = currentFilter.value ? `?filter=${currentFilter.value}` : ''
-      return $fetch<ComplaintsResponse>(`/api/resident/complaints/list${query}`, { method: 'GET' })
-    }
-  )
+  const complaintsData = ref<ComplaintsResponse | null>(null)
+  const loading = ref(false)
+  const error = ref('')
 
   const complaints = computed(() => complaintsData.value?.complaints || [])
   const hostelId = computed(() => complaintsData.value?.hostel_id || null)
 
-  const error = ref('')
-
   // Load complaints with optional filter
   const load = async (filter?: 'my' | 'public') => {
     currentFilter.value = filter
-    await refresh()
+    loading.value = true
+    error.value = ''
+    try {
+      const query = filter ? `?filter=${filter}` : ''
+      complaintsData.value = await $fetch<ComplaintsResponse>(`/api/resident/complaints/list${query}`, { method: 'GET' })
+    } catch (err: any) {
+      error.value = err?.data?.statusMessage || err?.message || 'Failed to load complaints'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Refresh current filter
+  const refresh = async () => {
+    await load(currentFilter.value)
+  }
+
+  // Initial load
+  if (import.meta.client && !complaintsData.value) {
+    load()
   }
 
   // Create new complaint
@@ -157,7 +162,7 @@ export const useComplaintsData = () => {
     complaints,
     hostelId,
     loading,
-    error: computed(() => fetchError.value ? 'Failed to load complaints' : error.value),
+    error: computed(() => error.value),
     isInitialized: computed(() => complaintsData.value !== null && complaintsData.value !== undefined),
 
     // Methods

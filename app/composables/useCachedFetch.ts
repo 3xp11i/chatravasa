@@ -69,11 +69,28 @@ export function useCachedAsyncData<T>(
   handler: () => Promise<T>,
   options: Parameters<typeof useAsyncData<T>>[2] = {}
 ) {
-  return useAsyncData<T>(key, handler, {
+  const nuxtApp = useNuxtApp()
+  
+  const asyncData = useAsyncData<T>(key, handler, {
     ...options,
     getCachedData(key, nuxtApp) {
       // Always return cached data if available (for SPA navigation)
       return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
     }
   })
+
+  // Override refresh to clear cache before fetching new data
+  const originalRefresh = asyncData.refresh
+  asyncData.refresh = async (opts) => {
+    // Clear the cached data so getCachedData doesn't return stale data
+    if (nuxtApp.payload.data[key] !== undefined) {
+      delete nuxtApp.payload.data[key]
+    }
+    if (nuxtApp.static.data[key] !== undefined) {
+      delete nuxtApp.static.data[key]
+    }
+    return originalRefresh(opts)
+  }
+
+  return asyncData
 }
