@@ -137,12 +137,18 @@ export default defineNuxtConfig({
 	runtimeConfig: {
 		// Server-only secrets (NOT exposed to client)
 		supabaseServiceKey: "",
+		// VAPID private key for push notifications (server-only)
+		vapidPrivateKey: "",
+		// VAPID subject for push notifications (server-only)
+		vapidSubject: "mailto:admin@chatravasa.com",
 
 		// Public keys (exposed to client via useRuntimeConfig().public)
 		public: {
 			// supabaseUrl: "",
 			// supabaseAnonKey: "",
 			// appName: "Chatravasa Management",
+			// VAPID public key for push notifications (exposed to client)
+			vapidPublicKey: "",
 		},
 	},
 

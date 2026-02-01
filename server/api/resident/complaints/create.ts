@@ -1,5 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
 import type { Database } from "~/types/database.types"
+import { sendNotificationToHostelAdmins } from "../../../utils/notifications"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB per file
 const MAX_IMAGES = 2
@@ -148,6 +149,34 @@ export default defineEventHandler(async (event) => {
       }
       throw createError({ statusCode: 500, statusMessage: insertErr?.message || "Failed to create complaint" })
     }
+
+    // Get hostel slug for the notification URL
+    const { data: hostel } = await client
+      .from("hostels")
+      .select("hostel_slug")
+      .eq("id", resident.hostel_id)
+      .single()
+
+    // Send notification to hostel admin and staff with complaint view permission
+    // This runs in the background and won't block the response
+    sendNotificationToHostelAdmins(
+      event,
+      resident.hostel_id,
+      {
+        title: "New Complaint Submitted",
+        body: `${type === 'public' ? 'Public' : 'Private'} complaint: ${title.trim().substring(0, 50)}${title.length > 50 ? '...' : ''}`,
+        url: hostel?.hostel_slug ? `/dashboard/hostels/${hostel.hostel_slug}/complaints` : '/dashboard',
+        type: "complaint",
+        data: {
+          complaintId: complaint.id,
+          complaintType: type,
+        },
+      },
+      "view_complaints" // Only notify staff who can view complaints
+    ).catch(err => {
+      // Log error but don't fail the request
+      console.error("Failed to send complaint notification:", err)
+    })
 
     return { success: true, complaint }
   } catch (error: any) {
