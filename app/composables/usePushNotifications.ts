@@ -119,21 +119,33 @@ export const usePushNotifications = () => {
     error.value = null
 
     try {
+      // Check if VAPID key is configured
+      const vapidKey = config.public.vapidPublicKey as string
+      if (!vapidKey) {
+        throw new Error('VAPID public key not configured')
+      }
+
+      console.log('[Push] Getting service worker registration...')
       const registration = await navigator.serviceWorker.ready
+      console.log('[Push] Service worker ready:', registration)
 
       // Check for existing subscription first
       let subscription = await registration.pushManager.getSubscription()
+      console.log('[Push] Existing subscription:', subscription)
 
       if (!subscription) {
+        console.log('[Push] Creating new subscription with VAPID key:', vapidKey.substring(0, 20) + '...')
         // Create new subscription with VAPID public key
         // Convert base64 public key to Uint8Array for the subscribe call
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true, // Required for Chrome - ensures notifications are always shown
-          applicationServerKey: urlBase64ToUint8Array(config.public.vapidPublicKey as string),
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
         } as PushSubscriptionOptionsInit)
+        console.log('[Push] Subscription created:', subscription)
       }
 
       // Save subscription to server with the userId we already validated
+      console.log('[Push] Saving subscription to server for user:', userId)
       await $fetch('/api/push/subscribe', {
         method: 'POST',
         body: {
@@ -144,10 +156,20 @@ export const usePushNotifications = () => {
 
       isSubscribed.value = true
       error.value = null
+      console.log('[Push] Successfully subscribed!')
       return subscription
     } catch (err: any) {
-      console.error('Push subscription failed:', err)
-      error.value = err.message || 'Failed to subscribe'
+      console.error('[Push] Subscription failed:', err)
+      // Provide more specific error messages
+      let errorMessage = err.message || 'Failed to subscribe'
+      if (err.name === 'NotAllowedError') {
+        errorMessage = 'Permission denied for notifications'
+      } else if (err.name === 'AbortError') {
+        errorMessage = 'Subscription was aborted'
+      } else if (err.message?.includes('push service')) {
+        errorMessage = 'Push service error - please try again'
+      }
+      error.value = errorMessage
       return null
     } finally {
       loading.value = false

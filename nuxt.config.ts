@@ -32,11 +32,17 @@ export default defineNuxtConfig({
 			"apple-touch-icon-180x180.png",
 			"maskable-icon-512x512.png",
 		],
+		// Import custom push handler into the service worker
+		injectManifest: {
+			globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
+		},
 		workbox: {
 			maximumFileSizeToCacheInBytes: 3000000,
 			globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
 			navigateFallback: "/",
 			navigateFallbackDenylist: [/^\/api\//],
+			// Import the push notification handler
+			importScripts: ["/sw-push.js"],
 			runtimeCaching: [
 				{
 					urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
@@ -138,9 +144,9 @@ export default defineNuxtConfig({
 		// Server-only secrets (NOT exposed to client)
 		supabaseServiceKey: "",
 		// VAPID private key for push notifications (server-only)
-		vapidPrivateKey: "",
+		vapidPrivateKey: process.env.NUXT_VAPID_PRIVATE_KEY || "",
 		// VAPID subject for push notifications (server-only)
-		vapidSubject: "mailto:admin@chatravasa.com",
+		vapidSubject: process.env.NUXT_VAPID_SUBJECT || "mailto:admin@chatravasa.com",
 
 		// Public keys (exposed to client via useRuntimeConfig().public)
 		public: {
@@ -148,7 +154,7 @@ export default defineNuxtConfig({
 			// supabaseAnonKey: "",
 			// appName: "Chatravasa Management",
 			// VAPID public key for push notifications (exposed to client)
-			vapidPublicKey: "",
+			vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || "",
 		},
 	},
 
