@@ -75,6 +75,23 @@ export const usePushNotifications = () => {
   }
 
   /**
+   * Get user ID from various possible locations in the user object
+   * Supabase user object structure can vary
+   */
+  const getUserId = (): string | null => {
+    if (!user.value) return null
+    
+    // Try different possible locations for user ID
+    const possibleId = 
+      (user.value as any).id || 
+      (user.value as any).sub || 
+      (user.value as any).user?.id ||
+      (user.value as any).user?.sub
+    
+    return possibleId || null
+  }
+
+  /**
    * Subscribe user to push notifications
    * Creates a push subscription and saves it to the server
    * @returns The push subscription object or null on failure
@@ -85,7 +102,15 @@ export const usePushNotifications = () => {
       return null
     }
 
-    if (!user.value?.id) {
+    // Get user ID with fallback checks
+    const userId = getUserId()
+    
+    if (!userId) {
+      // Log for debugging
+      console.error('User authentication check failed:', {
+        userValue: user.value,
+        userType: typeof user.value,
+      })
       error.value = 'User not authenticated'
       return null
     }
@@ -108,10 +133,17 @@ export const usePushNotifications = () => {
         } as PushSubscriptionOptionsInit)
       }
 
-      // Save subscription to server
-      await saveSubscriptionToServer(subscription)
+      // Save subscription to server with the userId we already validated
+      await $fetch('/api/push/subscribe', {
+        method: 'POST',
+        body: {
+          subscription: subscription.toJSON(),
+          userId,
+        },
+      })
 
       isSubscribed.value = true
+      error.value = null
       return subscription
     } catch (err: any) {
       console.error('Push subscription failed:', err)
@@ -143,6 +175,7 @@ export const usePushNotifications = () => {
       }
 
       isSubscribed.value = false
+      error.value = null
       return true
     } catch (err: any) {
       console.error('Unsubscribe failed:', err)
@@ -151,22 +184,6 @@ export const usePushNotifications = () => {
     } finally {
       loading.value = false
     }
-  }
-
-  /**
-   * Save push subscription to server (Supabase)
-   * Called after successful browser subscription
-   */
-  const saveSubscriptionToServer = async (subscription: PushSubscription) => {
-    const userId = user.value?.id || (user.value as any)?.sub
-
-    await $fetch('/api/push/subscribe', {
-      method: 'POST',
-      body: {
-        subscription: subscription.toJSON(),
-        userId,
-      },
-    })
   }
 
   /**
