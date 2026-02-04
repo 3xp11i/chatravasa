@@ -329,5 +329,25 @@
     "notificationFeature2": "Complaint status updates and replies",
     "notificationFeature3": "Important hostel announcements",
     "maybeLater": "Maybe Later",
-    "dontShowAgain": "Don't show this again"
+    "dontShowAgain": "Don't show this again",
+    
+    "sendReminder": "Send Reminder",
+    "sendFeeReminder": "Send Fee Reminder",
+    "sendTo": "Send To",
+    "onlyPendingFees": "Residents with Pending Fees",
+    "onlyPendingFeesDesc": "Only notify residents who haven't fully paid for this month",
+    "allResidents": "All Residents",
+    "allResidentsDesc": "Send reminder to everyone in the hostel",
+    "customMessage": "Custom Message",
+    "optional": "Optional",
+    "customMessagePlaceholder": "Add a personal note to the reminder...",
+    "reminderSentSuccess": "Reminders sent successfully!",
+    "totalNotified": "Total residents notified",
+    "pushNotificationsSent": "Push notifications sent",
+    "inAppNotificationsStored": "In-app notifications stored",
+    "residentsWithoutPush": "These residents don't have push notifications enabled",
+    "residentsWithoutPushNote": "They will see the notification when they open the app",
+    "reminderSent": "Reminder Sent!",
+    "residentNoPushEnabled": "Note: This resident doesn't have push notifications enabled. They will see it when they open the app.",
+    "failedSendReminder": "Failed to send reminder"
 }

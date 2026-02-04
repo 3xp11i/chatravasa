@@ -329,5 +329,25 @@
     "notificationFeature2": "शिकायत स्थिति अपडेट और उत्तर",
     "notificationFeature3": "महत्वपूर्ण छात्रावास घोषणाएं",
     "maybeLater": "बाद में",
-    "dontShowAgain": "इसे दोबारा न दिखाएं"
+    "dontShowAgain": "इसे दोबारा न दिखाएं",
+    
+    "sendReminder": "रिमाइंडर भेजें",
+    "sendFeeReminder": "शुल्क रिमाइंडर भेजें",
+    "sendTo": "किसे भेजें",
+    "onlyPendingFees": "लंबित शुल्क वाले निवासी",
+    "onlyPendingFeesDesc": "केवल उन निवासियों को सूचित करें जिन्होंने इस महीने पूरा भुगतान नहीं किया",
+    "allResidents": "सभी निवासी",
+    "allResidentsDesc": "छात्रावास में सभी को रिमाइंडर भेजें",
+    "customMessage": "कस्टम संदेश",
+    "optional": "वैकल्पिक",
+    "customMessagePlaceholder": "रिमाइंडर में व्यक्तिगत नोट जोड़ें...",
+    "reminderSentSuccess": "रिमाइंडर सफलतापूर्वक भेजे गए!",
+    "totalNotified": "कुल निवासियों को सूचित किया",
+    "pushNotificationsSent": "पुश नोटिफिकेशन भेजे गए",
+    "inAppNotificationsStored": "इन-ऐप नोटिफिकेशन संग्रहीत",
+    "residentsWithoutPush": "इन निवासियों ने पुश नोटिफिकेशन चालू नहीं किया",
+    "residentsWithoutPushNote": "जब वे ऐप खोलेंगे तो उन्हें नोटिफिकेशन दिखेगी",
+    "reminderSent": "रिमाइंडर भेजा गया!",
+    "residentNoPushEnabled": "नोट: इस निवासी ने पुश नोटिफिकेशन चालू नहीं किया है। जब वे ऐप खोलेंगे तब उन्हें दिखेगा।",
+    "failedSendReminder": "रिमाइंडर भेजने में विफल"
 }
