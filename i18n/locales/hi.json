@@ -322,5 +322,12 @@
     "justNow": "अभी",
     "minutesAgo": "{count} मिनट पहले",
     "hoursAgo": "{count} घंटे पहले",
-    "daysAgo": "{count} दिन पहले"
+    "daysAgo": "{count} दिन पहले",
+    "stayUpdated": "अपडेट रहें!",
+    "notificationPromptDesc": "अपने छात्रावास में महत्वपूर्ण अपडेट और गतिविधियों के बारे में तुरंत सूचनाएं प्राप्त करें।",
+    "notificationFeature1": "शुल्क भुगतान अनुस्मारक और देय तिथियां",
+    "notificationFeature2": "शिकायत स्थिति अपडेट और उत्तर",
+    "notificationFeature3": "महत्वपूर्ण छात्रावास घोषणाएं",
+    "maybeLater": "बाद में",
+    "dontShowAgain": "इसे दोबारा न दिखाएं"
 }
