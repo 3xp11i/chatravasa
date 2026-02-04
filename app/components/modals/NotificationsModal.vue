@@ -135,10 +135,16 @@ const {
   notifications, 
   unreadCount, 
   loading, 
+  fetchNotifications,
   markAsRead, 
   markAllAsRead, 
   clearAll 
 } = useNotifications()
+
+// Refresh notifications when modal opens
+onMounted(() => {
+  fetchNotifications()
+})
 
 /**
  * Handle clicking on a notification

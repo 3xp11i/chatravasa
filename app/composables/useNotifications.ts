@@ -32,6 +32,23 @@ export const useNotifications = () => {
   const error = useState<string | null>('notifications-error', () => null)
 
   /**
+   * Get user ID from various possible locations in the user object
+   * Supabase user object structure can vary - ID is often in 'sub' not 'id'
+   */
+  const getUserId = (): string | null => {
+    if (!user.value) return null
+    
+    // Try different possible locations for user ID
+    const possibleId = 
+      (user.value as any).id || 
+      (user.value as any).sub || 
+      (user.value as any).user?.id ||
+      (user.value as any).user?.sub
+    
+    return possibleId || null
+  }
+
+  /**
    * Computed property for unread notification count
    * Used to display badge on notification icon
    */
@@ -44,7 +61,11 @@ export const useNotifications = () => {
    * Ordered by creation date (newest first)
    */
   const fetchNotifications = async () => {
-    if (!user.value?.id) return
+    const userId = getUserId()
+    if (!userId) {
+      console.log('[Notifications] No user ID found, skipping fetch')
+      return
+    }
 
     loading.value = true
     error.value = null
@@ -54,6 +75,7 @@ export const useNotifications = () => {
         method: 'GET',
       })
       notifications.value = data || []
+      console.log('[Notifications] Fetched', notifications.value.length, 'notifications')
     } catch (err: any) {
       console.error('Failed to fetch notifications:', err)
       error.value = err.message || 'Failed to load notifications'
@@ -126,10 +148,11 @@ export const useNotifications = () => {
     notifications.value.unshift(notification)
   }
 
-  // Auto-fetch on user change
+  // Auto-fetch on user change - watch the whole user object since ID could be in different places
   watch(
-    () => user.value?.id,
-    (userId) => {
+    user,
+    (newUser) => {
+      const userId = getUserId()
       if (userId) {
         fetchNotifications()
       } else {
