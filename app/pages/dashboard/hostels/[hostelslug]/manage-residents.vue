@@ -235,9 +235,9 @@ watch(searchTerm, (newValue) => {
     }, 300)
 })
 
-// useAsyncData properly caches in SPA mode
+// useDynamicAsyncData properly caches in SPA mode and clears cache on refresh
 
-const { data: apiResponse, pending, error, refresh } = useAsyncData(
+const { data: apiResponse, pending, error, refresh } = useDynamicAsyncData(
     () => `residents-${hostelSlug}-page-${currentPage.value}-sort-${sortBy.value}-filter-${filterBy.value}-search-${debouncedSearchTerm.value}`,
     () => $fetch('/api/manage-resident/get-residents', {
         query: {
@@ -251,7 +251,6 @@ const { data: apiResponse, pending, error, refresh } = useAsyncData(
     }),
     {
         watch: [currentPage, sortBy, filterBy, debouncedSearchTerm],
-        getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
     }
 )
 

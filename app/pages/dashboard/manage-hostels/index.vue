@@ -119,9 +119,9 @@ const pageKey = computed(() => route.path)
 const currentPage = ref(navigationStore.getLastPage(pageKey.value));
 const pageSize = 10;
 
-// useCachedAsyncData provides proper caching for SPA navigation
-const { data: hostelData, pending: loading, error: fetchError, refresh } = useCachedAsyncData(
-  `hostels-page-${currentPage.value}`,
+// useDynamicAsyncData provides proper caching for SPA navigation and clears cache on refresh
+const { data: hostelData, pending: loading, error: fetchError, refresh } = useDynamicAsyncData(
+  () => `hostels-page-${currentPage.value}`,
   () => $fetch('/api/manage-hostel/get-hostels', {
     method: 'GET',
     query: {

@@ -301,7 +301,7 @@ const monthNames = [
     'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
-const { data: apiResponse, pending, error, refresh } = useAsyncData(
+const { data: apiResponse, pending, error, refresh } = useDynamicAsyncData(
     () => `fees-${hostelSlug}-page-${currentPage.value}-status-${statusFilter.value}-search-${debouncedSearchTerm.value}`,
     () => $fetch('/api/manage-fees/get-residents-with-fees', {
         query: {
@@ -314,7 +314,6 @@ const { data: apiResponse, pending, error, refresh } = useAsyncData(
     }),
     {
         watch: [currentPage, statusFilter, debouncedSearchTerm],
-        getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
     }
 )
 

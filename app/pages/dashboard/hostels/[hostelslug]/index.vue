@@ -60,15 +60,12 @@ const { isAdmin } = useCurrentUser();
 const { canViewForHostel, activateHostelBySlug, fetchStaffContext, staffContext } = useStaffContext();
 const hostelSlug = route.params.hostelslug as string;
 
-// useAsyncData properly caches in SPA mode
-const { data: hostelData, error, pending: loading } = useAsyncData(
+// useCachedAsyncData properly caches in SPA mode and clears cache on refresh
+const { data: hostelData, error, pending: loading } = useCachedAsyncData(
   `hostel-${hostelSlug}`,
   () => $fetch<{ success: boolean; hostel: Hostel }>(`/api/manage-hostel/get-hostel-by-slug`, {
     query: { slug: hostelSlug }
-  }),
-  {
-    getCachedData: (key) => useNuxtApp().payload.data[key] || useNuxtApp().static.data[key],
-  }
+  })
 );
 
 

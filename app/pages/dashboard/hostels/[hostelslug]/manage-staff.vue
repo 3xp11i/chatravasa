@@ -286,9 +286,9 @@ const activeTab = ref<'members' | 'roles'>('members')
 const searchTerm = ref('')
 const currentPage = ref(navigationStore.getLastPage(pageKey.value))
 
-// useAsyncData properly caches in SPA mode
-const { data: membersResponse, pending: pendingMembers, error: errorMembers, refresh: refreshMembers } = useAsyncData(
-    `staff-members-${hostelSlug}-page-${currentPage.value}`,
+// useDynamicAsyncData properly caches in SPA mode and clears cache on refresh
+const { data: membersResponse, pending: pendingMembers, error: errorMembers, refresh: refreshMembers } = useDynamicAsyncData(
+    () => `staff-members-${hostelSlug}-page-${currentPage.value}`,
     () => $fetch<{ staff_members: StaffMember[]; total: number }>('/api/manage-staff/get-staff-members', {
         query: {
             hostel_slug: hostelSlug,
@@ -318,8 +318,8 @@ const filteredStaffMembers = computed(() => {
     })
 })
 
-// useAsyncData properly caches in SPA mode
-const { data: rolesResponse, pending: pendingRoles, error: errorRoles, refresh: refreshRoles } = useAsyncData(
+// useCachedAsyncData properly caches in SPA mode and clears cache on refresh
+const { data: rolesResponse, pending: pendingRoles, error: errorRoles, refresh: refreshRoles } = useCachedAsyncData(
     `staff-roles-${hostelSlug}`,
     () => $fetch('/api/manage-staff/get-staff-roles', {
         query: { hostel_slug: hostelSlug }
