@@ -21,7 +21,7 @@ self.addEventListener('push', (event) => {
     const options = {
       body: data.body || 'You have a new notification',
       icon: '/pwa-192x192.png',
-      badge: '/pwa-64x64.png',
+      badge: '/notifications_small_logo.svg',
       vibrate: [100, 50, 100],
       data: {
         url: data.url || '/',
