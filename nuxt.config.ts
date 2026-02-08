@@ -97,7 +97,7 @@ export default defineNuxtConfig({
 		},
 		manifest: {
 			name: "Chatravasa - Students ka Ghar, Digitally Managed",
-			short_name: `Chatravasa Dev ${appVersion})`,
+			short_name: `Chatravasa Dev ${appVersion}`,
 			description:
 				"Chatravasa Management system for hostel residents and staff",
 			theme_color: "#4CAF50",
