@@ -64,6 +64,29 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, statusMessage: "Forbidden" })
     }
 
+    // Rate limiting: Check if reminder was sent in the last 24 hours (except in development)
+    if (process.env.NODE_ENV !== 'development') {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      
+      const { data: recentReminder } = await serviceClient
+        .from('hostel_reminder_logs')
+        .select('sent_at')
+        .eq('hostel_id', hostel.id)
+        .eq('reminder_type', 'fee_reminder')
+        .gte('sent_at', twentyFourHoursAgo.toISOString())
+        .order('sent_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      if (recentReminder) {
+        const hoursSinceLastReminder = Math.round((Date.now() - new Date(recentReminder.sent_at).getTime()) / (60 * 60 * 1000))
+        throw createError({ 
+          statusCode: 429, 
+          statusMessage: `Rate limit exceeded. Fee reminders can only be sent once per day. Last reminder was sent ${hoursSinceLastReminder} hours ago. Please try again later.`
+        })
+      }
+    }
+
     // Get target residents - residents.id IS the user_id (references profiles.id)
     let targetUserIds: string[] = []
     let residentsWithoutSubscription: { id: string; name: string }[] = []
@@ -182,6 +205,17 @@ export default defineEventHandler(async (event) => {
         hostelName: hostel.hostel_name,
       },
     })
+
+    // Log the reminder for rate limiting
+    await serviceClient
+      .from('hostel_reminder_logs')
+      .insert({
+        hostel_id: hostel.id,
+        sent_by_user_id: userId,
+        reminder_type: 'fee_reminder',
+        target_count: targetUserIds.length,
+        message: message || null,
+      })
 
     return {
       success: true,

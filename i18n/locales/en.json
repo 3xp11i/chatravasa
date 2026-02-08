@@ -351,5 +351,6 @@
     "residentsWithoutPushNote": "They will see the notification when they open the app",
     "reminderSent": "Reminder Sent!",
     "residentNoPushEnabled": "Note: This resident doesn't have push notifications enabled. They will see it when they open the app.",
-    "failedSendReminder": "Failed to send reminder"
+    "failedSendReminder": "Failed to send reminder",
+    "rateLimitExceeded": "Rate Limit Exceeded"
 }

@@ -284,7 +284,11 @@
                         <div v-if="reminderResult" 
                              :class="[
                                 'p-3 rounded-lg text-sm',
-                                reminderResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                                reminderResult.success 
+                                    ? 'bg-green-50 text-green-800' 
+                                    : reminderResult.isRateLimited
+                                        ? 'bg-red-50 text-red-800 border border-red-200'
+                                        : 'bg-red-50 text-red-800'
                              ]">
                             <div v-if="reminderResult.success">
                                 <p class="font-medium">{{ t('reminderSentSuccess') }}</p>
@@ -303,7 +307,14 @@
                                 </div>
                             </div>
                             <div v-else>
-                                <p>{{ reminderResult.message }}</p>
+                                <div v-if="reminderResult.isRateLimited" class="flex items-start gap-2">
+                                    <Icon name="material-symbols:schedule" class="text-red-600 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <p class="font-medium">{{ t('rateLimitExceeded') }}</p>
+                                        <p class="text-xs mt-1">{{ reminderResult.message }}</p>
+                                    </div>
+                                </div>
+                                <p v-else>{{ reminderResult.message }}</p>
                             </div>
                         </div>
                     </div>
@@ -480,6 +491,7 @@ const reminderResult = ref<{
     pushSent?: number
     inAppStored?: number
     residentsWithoutPushSubscription?: { id: string; name: string }[]
+    isRateLimited?: boolean
 } | null>(null)
 
 // Send fee reminder
@@ -506,9 +518,14 @@ const sendFeeReminder = async () => {
         }
     } catch (error: any) {
         console.error('Failed to send reminder:', error)
+        
+        // Special handling for rate limiting
+        const isRateLimited = error.status === 429
+        
         reminderResult.value = {
             success: false,
-            message: error.data?.message || 'Failed to send reminders'
+            message: error.data?.message || 'Failed to send reminders',
+            isRateLimited,
         }
     } finally {
         sendingReminder.value = false

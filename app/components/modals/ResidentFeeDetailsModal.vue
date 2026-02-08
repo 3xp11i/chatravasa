@@ -260,7 +260,18 @@ const sendFeeReminder = async () => {
         }, 5000)
     } catch (error: any) {
         console.error('Failed to send reminder:', error)
-        reminderError.value = error.data?.message || t('failedSendReminder')
+        
+        // Handle rate limiting with special styling
+        if (error.status === 429) {
+            reminderError.value = error.data?.message || 'Rate limit exceeded. Please try again later.'
+        } else {
+            reminderError.value = error.data?.message || t('failedSendReminder')
+        }
+        
+        // Reset error after 8 seconds for rate limiting (longer message)
+        setTimeout(() => {
+            reminderError.value = null
+        }, 8000)
     } finally {
         isSendingReminder.value = false
     }
@@ -413,7 +424,13 @@ onMounted(() => {
                             <span v-if="reminderSent">{{ t('reminderSent') }}</span>
                             <span v-else>{{ t('sendFeeReminder') }}</span>
                         </button>
-                        <p v-if="reminderError" class="text-xs text-amber-600 mt-1 text-center">{{ reminderError }}</p>
+                        <p v-if="reminderError" 
+                           :class="[
+                               'text-xs mt-1 text-center',
+                               reminderError.includes('Rate limit') || reminderError.includes('hours ago')
+                                   ? 'text-red-600'
+                                   : 'text-amber-600'
+                           ]">{{ reminderError }}</p>
                     </div>
                 </div>
             </div>

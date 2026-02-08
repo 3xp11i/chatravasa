@@ -351,5 +351,6 @@
     "residentsWithoutPushNote": "जब वे ऐप खोलेंगे तो उन्हें नोटिफिकेशन दिखेगी",
     "reminderSent": "रिमाइंडर भेजा गया!",
     "residentNoPushEnabled": "नोट: इस निवासी ने पुश नोटिफिकेशन चालू नहीं किया है। जब वे ऐप खोलेंगे तब उन्हें दिखेगा।",
-    "failedSendReminder": "रिमाइंडर भेजने में विफल"
+    "failedSendReminder": "रिमाइंडर भेजने में विफल",
+    "rateLimitExceeded": "दर सीमा पार हो गई"
 }
