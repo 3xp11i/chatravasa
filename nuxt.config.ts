@@ -1,4 +1,11 @@
 import tailwindcss from "@tailwindcss/vite";
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+// Get app version from package.json
+const packageJsonPath = join(process.cwd(), 'package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+const appVersion = packageJson.version || '1.0.0';
 
 export default defineNuxtConfig({
 	compatibilityDate: "2025-12-18",
@@ -155,7 +162,9 @@ export default defineNuxtConfig({
 		public: {
 			// supabaseUrl: "",
 			// supabaseAnonKey: "",
-			// appName: "Chatravasa Management",
+			appName: "Chatravasa Management",
+			// App version for feature versioning and cache busting
+			appVersion: appVersion,
 			// VAPID public key for push notifications (exposed to client)
 			vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || "",
 		},

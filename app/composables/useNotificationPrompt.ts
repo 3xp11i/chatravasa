@@ -2,14 +2,19 @@
  * Composable for managing automatic notification permission prompt
  * 
  * Handles:
+ * - First-time deployment to existing users (app version-based prompting)
  * - First-time prompt after login or PWA install
  * - Respects user's previous choice
  * - Can re-prompt after 7 days if user selected "maybe later"
+ * 
+ * Uses app version from package.json to ensure all existing users see the notification prompt
+ * when this feature is first deployed, regardless of their previous PWA usage.
  */
 
 export const useNotificationPrompt = () => {
   const showPrompt = ref(false)
   const user = useSupabaseUser()
+  const { appVersion } = useRuntimeConfig().public
 
   /**
    * Check if app is running as PWA
@@ -49,6 +54,22 @@ export const useNotificationPrompt = () => {
       if (Date.now() < nextPromptTime) return false
     }
 
+    // **Check app version for first-time deployment or updates**
+    // This ensures all existing users see the prompt when notifications are first deployed
+    // or when significant updates requiring re-prompting are made
+    const lastPromptedVersion = localStorage.getItem('notification_prompted_version')
+    
+    // Handle backward compatibility: existing users will have null, new users will have no version
+    // Both cases should trigger the prompt on first deployment of versioning system
+    if (!lastPromptedVersion || lastPromptedVersion !== appVersion) {
+      // Cases covered:
+      // 1. New user: lastPromptedVersion is null -> !null = true -> prompt shown
+      // 2. Existing user (pre-versioning): lastPromptedVersion is null -> !null = true -> prompt shown  
+      // 3. App updated: lastPromptedVersion !== current appVersion -> prompt shown
+      localStorage.setItem('notification_prompted_version', appVersion)
+      return true
+    }
+
     // Check if this is first time opening as PWA
     const hasOpenedAsPWA = localStorage.getItem('has_opened_as_pwa')
     if (isPWA.value && !hasOpenedAsPWA) {
@@ -69,7 +90,7 @@ export const useNotificationPrompt = () => {
       return false
     }
 
-    return true
+    return false // Changed from true to false as fallback
   }
 
   /**
@@ -105,7 +126,16 @@ export const useNotificationPrompt = () => {
     localStorage.removeItem('notification_prompt_next')
     localStorage.removeItem('has_opened_as_pwa')
     localStorage.removeItem('last_login_prompt_check')
+    localStorage.removeItem('notification_prompted_version') // Clear version tracking
   }
+
+  /**
+   * Get current app version
+   * Useful for debugging or display purposes
+   * 
+   * To force re-prompt: Bump version in package.json (e.g., from '1.0.0' to '1.1.0')
+   */
+  const getCurrentVersion = () => appVersion
 
   return {
     showPrompt,
@@ -113,5 +143,6 @@ export const useNotificationPrompt = () => {
     initialize,
     closePrompt,
     resetPromptState,
+    getCurrentVersion,
   }
 }
