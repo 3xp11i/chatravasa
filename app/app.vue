@@ -53,7 +53,7 @@ const closeNotificationPrompt = () => {
   closePrompt()
 }
 
-// Initialize app and notification prompt on mount
+// Initialize app on mount
 onMounted(async () => {
   await initializeApp()
   initialize()
