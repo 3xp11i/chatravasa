@@ -12,7 +12,7 @@
         <p class="text-sm text-gray-600 mb-3">
           {{ offlineReady 
             ? 'You can now use this app offline' 
-            : 'A new version is available. Update to get the latest features.' 
+            : 'A new version is available. Click "Reload Now" to update immediately, or it will update automatically next time you restart the app.' 
           }}
         </p>
         <div class="flex gap-2">
@@ -21,13 +21,13 @@
             @click="updateServiceWorker"
             class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
           >
-            Update Now
+            Reload Now
           </button>
           <button
             @click="close"
             class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors"
           >
-            {{ needRefresh ? 'Later' : 'Close' }}
+            {{ needRefresh ? 'On Next Restart' : 'Close' }}
           </button>
         </div>
       </div>
