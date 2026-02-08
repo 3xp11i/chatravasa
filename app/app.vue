@@ -18,6 +18,11 @@
       v-if="showNotificationPrompt" 
       @close="closeNotificationPrompt"
     />
+
+    <!-- PWA Update Prompt -->
+    <ClientOnly>
+      <UpdatePrompt />
+    </ClientOnly>
   </div>
 </template>
 

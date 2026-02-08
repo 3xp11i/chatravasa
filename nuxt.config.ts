@@ -36,7 +36,7 @@ export default defineNuxtConfig({
 	css: ["~/assets/css/main.css", "vue-final-modal/style.css"],
 
 	pwa: {
-		registerType: "autoUpdate",
+		registerType: "prompt",
 		includeAssets: [
 			"favicon.ico",
 			"apple-touch-icon-180x180.png",
@@ -53,8 +53,11 @@ export default defineNuxtConfig({
 			navigateFallbackDenylist: [/^\/api\//],
 			// Import the push notification handler
 			importScripts: ["/sw-push.js"],
+			// Don't skip waiting - wait for user to accept update
+			skipWaiting: false,
 			runtimeCaching: [
 				{
+					// Only cache Supabase REST API, NOT auth endpoints
 					urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
 					handler: "NetworkFirst",
 					options: {
@@ -84,7 +87,7 @@ export default defineNuxtConfig({
 		},
 		client: {
 			installPrompt: true,
-			periodicSyncForUpdates: 3600, // Check for updates every hour
+			// Removed periodicSyncForUpdates to prevent automatic checks that could disrupt sessions
 		},
 		devOptions: {
 			enabled: true,
