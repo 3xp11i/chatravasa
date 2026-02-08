@@ -25,11 +25,16 @@ export interface Notification {
 
 export const useNotifications = () => {
   const user = useSupabaseUser()
+  const supabase = useSupabaseClient()
 
-  // Reactive state for notifications
+  // Reactive state for notifications - shared across all components
   const notifications = useState<Notification[]>('notifications', () => [])
   const loading = useState<boolean>('notifications-loading', () => false)
   const error = useState<string | null>('notifications-error', () => null)
+  
+  // Track if realtime is already subscribed - shared to prevent duplicates
+  const isRealtimeSubscribed = useState<boolean>('notifications-realtime-subscribed', () => false)
+  const currentSubscribedUserId = useState<string | null>('notifications-subscribed-user-id', () => null)
 
   /**
    * Get user ID from various possible locations in the user object
@@ -144,8 +149,116 @@ export const useNotifications = () => {
    * Used when receiving a push notification while app is open
    */
   const addNotification = (notification: Notification) => {
-    // Add to beginning of array (newest first)
-    notifications.value.unshift(notification)
+    // Check if notification already exists to avoid duplicates
+    const exists = notifications.value.some(n => n.id === notification.id)
+    if (!exists) {
+      // Add to beginning of array (newest first)
+      notifications.value.unshift(notification)
+      console.log('[Notifications] Added new notification, unread count:', unreadCount.value)
+    }
+  }
+
+  /**
+   * Subscribe to realtime notifications for the current user
+   */
+  const subscribeToRealtime = () => {
+    if (!import.meta.client) return
+    
+    const userId = getUserId()
+    if (!userId) return
+
+    // Prevent duplicate subscriptions for the same user
+    if (isRealtimeSubscribed.value && currentSubscribedUserId.value === userId) {
+      console.log('[Notifications] Realtime already subscribed for user:', userId)
+      return
+    }
+
+    // If subscribed to a different user, unsubscribe first
+    if (isRealtimeSubscribed.value && currentSubscribedUserId.value !== userId) {
+      unsubscribeFromRealtime()
+    }
+
+    console.log('[Notifications] Setting up realtime subscription for user:', userId)
+
+    const channelName = `notifications-user-${userId}`
+    
+    // Subscribe to new notifications for this user
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('[Notifications] Realtime INSERT received:', payload.new)
+          addNotification(payload.new as Notification)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('[Notifications] Realtime UPDATE received:', payload.new)
+          // Update existing notification in local state
+          const index = notifications.value.findIndex(n => n.id === (payload.new as Notification).id)
+          if (index !== -1) {
+            notifications.value[index] = payload.new as Notification
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('[Notifications] Realtime DELETE received:', payload.old)
+          // Remove from local state
+          notifications.value = notifications.value.filter(n => n.id !== (payload.old as any).id)
+        }
+      )
+      .subscribe((status, err) => {
+        console.log('[Notifications] Realtime subscription status:', status, err || '')
+        if (status === 'SUBSCRIBED') {
+          isRealtimeSubscribed.value = true
+          currentSubscribedUserId.value = userId
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('[Notifications] Realtime subscription failed:', err)
+          isRealtimeSubscribed.value = false
+        }
+      })
+  }
+
+  /**
+   * Unsubscribe from realtime notifications
+   */
+  const unsubscribeFromRealtime = () => {
+    if (!import.meta.client) return
+    
+    if (currentSubscribedUserId.value) {
+      const channelName = `notifications-user-${currentSubscribedUserId.value}`
+      // Find the channel by topic and remove it
+      const channels = supabase.getChannels()
+      const existingChannel = channels.find((ch: any) => ch.topic === `realtime:${channelName}`)
+      if (existingChannel) {
+        supabase.removeChannel(existingChannel)
+        console.log('[Notifications] Realtime unsubscribed from channel:', channelName)
+      }
+      isRealtimeSubscribed.value = false
+      currentSubscribedUserId.value = null
+    }
   }
 
   // Auto-fetch on user change - watch the whole user object since ID could be in different places
@@ -155,8 +268,10 @@ export const useNotifications = () => {
       const userId = getUserId()
       if (userId) {
         fetchNotifications()
+        subscribeToRealtime()
       } else {
         notifications.value = []
+        unsubscribeFromRealtime()
       }
     },
     { immediate: true }
