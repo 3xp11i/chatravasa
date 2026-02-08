@@ -304,6 +304,8 @@
     "subscribeSuccess": "सूचनाएं सफलतापूर्वक चालू की गईं!",
     "subscribeFailed": "सूचनाएं चालू करने में विफल",
     "unsubscribeSuccess": "सूचनाएं बंद कर दी गईं",
+    "subscribed": "सक्रिय",
+    "notSubscribed": "निष्क्रिय",
     "unsubscribeFailed": "सूचनाएं बंद करने में विफल",
     "sendTestNotification": "टेस्ट नोटिफिकेशन भेजें",
     "testNotificationSent": "टेस्ट नोटिफिकेशन भेजी गई! अपना डिवाइस देखें।",

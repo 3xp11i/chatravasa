@@ -15,10 +15,10 @@
     <div class="card mb-6">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold">{{ t('pushNotifications') }}</h2>
-        <Icon 
+        <!-- <Icon 
           name="material-symbols:notifications-active" 
           class="text-2xl text-primary"
-        />
+        /> -->
       </div>
 
       <!-- Browser Support Check -->
@@ -68,12 +68,25 @@
           <button
             @click="toggleNotifications"
             :disabled="loading"
-            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            :class="isSubscribed ? 'bg-primary' : 'bg-gray-300'"
+            class="p-3 rounded-full transition-all duration-200 disabled:opacity-50"
+            :class="isSubscribed 
+              ? 'bg-primary text-white shadow-lg shadow-primary/30' 
+              : 'bg-gray-200 text-gray-500 hover:bg-gray-300'"
           >
-            <span
-              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm"
-              :class="isSubscribed ? 'translate-x-6' : 'translate-x-1'"
+            <Icon 
+              v-if="loading" 
+              name="svg-spinners:90-ring-with-bg" 
+              class="text-2xl" 
+            />
+            <Icon 
+              v-else-if="isSubscribed" 
+              name="material-symbols:notifications-active" 
+              class="text-2xl" 
+            />
+            <Icon 
+              v-else 
+              name="material-symbols:notifications-off" 
+              class="text-2xl" 
             />
           </button>
         </div>
@@ -81,8 +94,8 @@
         <!-- Current Status -->
         <div class="text-sm text-gray-500">
           Status: 
-          <span :class="isSubscribed ? 'text-green-600' : 'text-gray-600'">
-            {{ isSubscribed ? 'Subscribed' : 'Not subscribed' }}
+          <span :class="isSubscribed ? 'text-green-600 font-medium' : 'text-gray-600'">
+            {{ isSubscribed ? t('subscribed') : t('notSubscribed') }}
           </span>
         </div>
 
@@ -96,8 +109,8 @@
           {{ error }}
         </div>
 
-        <!-- Test Notification Button (only when subscribed) -->
-        <div v-if="isSubscribed" class="pt-2">
+        <!-- Test Notification Button (only when subscribed, dev only) -->
+        <div v-if="isSubscribed && isDev" class="pt-2">
           <button
             @click="sendTestNotification"
             :disabled="testLoading"
@@ -145,8 +158,8 @@
       </ul>
     </div>
 
-    <!-- Debug Info (remove in production) -->
-    <div class="card mt-6 text-xs text-gray-400">
+    <!-- Debug Info (dev only) -->
+    <div v-if="isDev" class="card mt-6 text-xs text-gray-400">
       <details>
         <summary class="cursor-pointer">Debug Info</summary>
         <pre class="mt-2 overflow-auto">{{ debugInfo }}</pre>
@@ -165,6 +178,9 @@ definePageMeta({
 
 const { t } = useI18n()
 const user = useSupabaseUser()
+
+// Check if in development mode
+const isDev = import.meta.dev
 
 // Push notification composable
 const {

@@ -304,6 +304,8 @@
     "subscribeSuccess": "Notifications enabled successfully!",
     "subscribeFailed": "Failed to enable notifications",
     "unsubscribeSuccess": "Notifications disabled",
+    "subscribed": "Subscribed",
+    "notSubscribed": "Not subscribed",
     "unsubscribeFailed": "Failed to disable notifications",
     "sendTestNotification": "Send Test Notification",
     "testNotificationSent": "Test notification sent! Check your device.",
