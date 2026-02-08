@@ -22,6 +22,9 @@ export default defineNuxtConfig({
 
 	vite: {
 		plugins: [tailwindcss()],
+		server: {
+			allowedHosts: [".ngrok-free.app"],
+		},
 	},
 	css: ["~/assets/css/main.css", "vue-final-modal/style.css"],
 
