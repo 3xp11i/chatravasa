@@ -1,7 +1,7 @@
 <template>
-  <div
+    <div
     v-if="offlineReady || needRefresh"
-    class="fixed bottom-4 right-4 bg-white border-2 border-green-600 rounded-lg shadow-xl p-4 max-w-sm z-50 animate-slide-up"
+    class="fixed bottom-0 right-0 bg-white border-2 border-green-600 rounded-t-lg shadow-xl p-4 z-50 animate-slide-up"
   >
     <div class="flex items-start gap-3">
       <Icon name="heroicons:arrow-path" class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
