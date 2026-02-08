@@ -5,13 +5,25 @@
                 <h1 class="text-3xl font-bold text-gray-900">{{ t('manageFees') }}</h1>
                 <p class="text-gray-600">{{ t('manageFeesDesc') }}</p>
             </div>
-            <!-- Manage Categories Button -->
-            <button v-if="canManageFees"
-                    class="greenBtn flex items-center justify-center w-full"
-                    @click="openFeeCategoriesModal">
-                <Icon name="material-symbols:category"
-                      class="text-xl mr-1"></Icon> {{ t('manageCategories') }}
-            </button>
+            <!-- Action Buttons -->
+            <div v-if="canManageFees" class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <!-- Send Reminder Button -->
+                <button 
+                    class="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+                    @click="showReminderModal = true"
+                >
+                    <Icon name="material-symbols:notifications-active" class="text-xl mr-1" />
+                    {{ t('sendReminder') }}
+                </button>
+                <!-- Manage Categories Button -->
+                <button 
+                    class="greenBtn flex items-center justify-center"
+                    @click="openFeeCategoriesModal"
+                >
+                    <Icon name="material-symbols:category" class="text-xl mr-1" />
+                    {{ t('manageCategories') }}
+                </button>
+            </div>
             <!-- Restricted Message -->
             <div v-else class="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <p class="text-sm text-yellow-800">{{ t('noPermissionManageFees') }}</p>
@@ -215,6 +227,101 @@
             </div>
         </div>
 
+        <!-- Fee Reminder Modal -->
+        <Teleport to="body">
+            <div v-if="showReminderModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl shadow-xl w-full p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">{{ t('sendFeeReminder') }}</h3>
+                        <button @click="showReminderModal = false" class="text-gray-400 hover:text-gray-600">
+                            <Icon name="material-symbols:close" class="text-2xl" />
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Target Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('sendTo') }}</label>
+                            <div class="space-y-2">
+                                <label class="flex! flex-row items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                                       :class="reminderTarget === 'pending' ? 'border-green-500 bg-green-50' : 'border-gray-200'">
+                                    <input type="radio" v-model="reminderTarget" value="pending" class="text-green-600 w-fit!" />
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ t('onlyPendingFees') }}</p>
+                                        <p class="text-xs text-gray-500">{{ t('onlyPendingFeesDesc') }}</p>
+                                    </div>
+                                </label>
+                                <label class="flex! flex-row items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                                       :class="reminderTarget === 'all' ? 'border-green-500 bg-green-50' : 'border-gray-200'">
+                                    <input type="radio" v-model="reminderTarget" value="all" class="text-green-600 w-fit!" />
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ t('allResidents') }}</p>
+                                        <p class="text-xs text-gray-500">{{ t('allResidentsDesc') }}</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Custom Message -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('customMessage') }} ({{ t('optional') }})</label>
+                            <textarea v-model="reminderMessage"
+                                      :placeholder="t('customMessagePlaceholder')"
+                                      rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"></textarea>
+                        </div>
+
+                        <!-- Send Button -->
+                        <button @click="sendFeeReminder"
+                                :disabled="sendingReminder"
+                                class="w-full py-3 rounded-lg font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                            <Icon v-if="sendingReminder" name="svg-spinners:90-ring-with-bg" class="text-xl" />
+                            <Icon v-else name="material-symbols:send" class="text-xl" />
+                            {{ sendingReminder ? t('sending') : t('sendReminder') }}
+                        </button>
+
+                        <!-- Result Message -->
+                        <div v-if="reminderResult" 
+                             :class="[
+                                'p-3 rounded-lg text-sm',
+                                reminderResult.success 
+                                    ? 'bg-green-50 text-green-800' 
+                                    : reminderResult.isRateLimited
+                                        ? 'bg-red-50 text-red-800 border border-red-200'
+                                        : 'bg-red-50 text-red-800'
+                             ]">
+                            <div v-if="reminderResult.success">
+                                <p class="font-medium">{{ t('reminderSentSuccess') }}</p>
+                                <ul class="mt-1 text-xs space-y-1">
+                                    <li>• {{ t('totalNotified') }}: {{ reminderResult.totalNotified }}</li>
+                                    <li>• {{ t('pushNotificationsSent') }}: {{ reminderResult.pushSent }}</li>
+                                    <li>• {{ t('inAppNotificationsStored') }}: {{ reminderResult.inAppStored }}</li>
+                                </ul>
+                                <!-- Warning about users without push subscriptions -->
+                                <div v-if="reminderResult.residentsWithoutPushSubscription?.length" class="mt-2 p-2 bg-amber-100 rounded text-amber-800">
+                                    <p class="font-medium text-xs">{{ t('residentsWithoutPush') }}:</p>
+                                    <p class="text-xs mt-1">
+                                        {{ reminderResult.residentsWithoutPushSubscription.map(r => r.name).join(', ') }}
+                                    </p>
+                                    <p class="text-xs mt-1 italic">{{ t('residentsWithoutPushNote') }}</p>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <div v-if="reminderResult.isRateLimited" class="flex items-start gap-2">
+                                    <Icon name="material-symbols:schedule" class="text-red-600 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <p class="font-medium">{{ t('rateLimitExceeded') }}</p>
+                                        <p class="text-xs mt-1">{{ reminderResult.message }}</p>
+                                    </div>
+                                </div>
+                                <p v-else>{{ reminderResult.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
         <ModalsContainer />
     </div>
 </template>
@@ -369,5 +476,58 @@ const openResidentFeeDetails = (resident: ResidentWithFees) => {
         },
     })
     open()
+}
+
+// Fee Reminder Modal State
+const showReminderModal = ref(false)
+const reminderTarget = ref<'pending' | 'all'>('pending')
+const reminderMessage = ref('')
+const sendingReminder = ref(false)
+const reminderResult = ref<{
+    success: boolean
+    message?: string
+    totalNotified?: number
+    pushSent?: number
+    inAppStored?: number
+    residentsWithoutPushSubscription?: { id: string; name: string }[]
+    isRateLimited?: boolean
+} | null>(null)
+
+// Send fee reminder
+const sendFeeReminder = async () => {
+    sendingReminder.value = true
+    reminderResult.value = null
+
+    try {
+        const result = await $fetch('/api/manage-fees/send-reminder', {
+            method: 'POST',
+            body: {
+                hostel_slug: hostelSlug,
+                only_pending: reminderTarget.value === 'pending',
+                message: reminderMessage.value || undefined,
+            }
+        })
+        
+        reminderResult.value = {
+            success: true,
+            totalNotified: result.totalNotified,
+            pushSent: result.pushSent,
+            inAppStored: result.inAppStored,
+            residentsWithoutPushSubscription: result.residentsWithoutPushSubscription,
+        }
+    } catch (error: any) {
+        console.error('Failed to send reminder:', error)
+        
+        // Special handling for rate limiting
+        const isRateLimited = error.status === 429
+        
+        reminderResult.value = {
+            success: false,
+            message: error.data?.message || 'Failed to send reminders',
+            isRateLimited,
+        }
+    } finally {
+        sendingReminder.value = false
+    }
 }
 </script>

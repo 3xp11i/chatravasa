@@ -1,4 +1,11 @@
 import tailwindcss from "@tailwindcss/vite";
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+// Get app version from package.json
+const packageJsonPath = join(process.cwd(), 'package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+const appVersion = packageJson.version || '1.0.0';
 
 export default defineNuxtConfig({
 	compatibilityDate: "2025-12-18",
@@ -22,6 +29,9 @@ export default defineNuxtConfig({
 
 	vite: {
 		plugins: [tailwindcss()],
+		server: {
+			allowedHosts: [".ngrok-free.app"],
+		},
 	},
 	css: ["~/assets/css/main.css", "vue-final-modal/style.css"],
 
@@ -32,11 +42,17 @@ export default defineNuxtConfig({
 			"apple-touch-icon-180x180.png",
 			"maskable-icon-512x512.png",
 		],
+		// Import custom push handler into the service worker
+		injectManifest: {
+			globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
+		},
 		workbox: {
 			maximumFileSizeToCacheInBytes: 3000000,
 			globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
 			navigateFallback: "/",
 			navigateFallbackDenylist: [/^\/api\//],
+			// Import the push notification handler
+			importScripts: ["/sw-push.js"],
 			runtimeCaching: [
 				{
 					urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
@@ -137,12 +153,20 @@ export default defineNuxtConfig({
 	runtimeConfig: {
 		// Server-only secrets (NOT exposed to client)
 		supabaseServiceKey: "",
+		// VAPID private key for push notifications (server-only)
+		vapidPrivateKey: process.env.NUXT_VAPID_PRIVATE_KEY || "",
+		// VAPID subject for push notifications (server-only)
+		vapidSubject: process.env.NUXT_VAPID_SUBJECT || "mailto:admin@chatravasa.com",
 
 		// Public keys (exposed to client via useRuntimeConfig().public)
 		public: {
 			// supabaseUrl: "",
 			// supabaseAnonKey: "",
-			// appName: "Chatravasa Management",
+			appName: "Chatravasa Management",
+			// App version for feature versioning and cache busting
+			appVersion: appVersion,
+			// VAPID public key for push notifications (exposed to client)
+			vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || "",
 		},
 	},
 

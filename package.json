@@ -1,5 +1,6 @@
 {
   "name": "chatravasa-management",
+  "version": "1.0.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -25,9 +26,11 @@
     "tailwindcss": "^4.1.17",
     "vue": "^3.5.25",
     "vue-final-modal": "^4.5.5",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.3",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@types/web-push": "^3.6.4",
     "@vite-pwa/assets-generator": "^1.0.2",
     "supabase": "^2.67.3"
   }

@@ -17,6 +17,9 @@ const { localizeNumber } = useNumberLocalization()
 
 const isLoading = ref(false)
 const isSaving = ref(false)
+const isSendingReminder = ref(false)
+const reminderSent = ref(false)
+const reminderError = ref<string | null>(null)
 const categories = ref<any[]>([])
 const paymentHistory = ref<any[]>([])
 const allMonthsPayments = ref<any[]>([])
@@ -228,6 +231,52 @@ const deletePayment = async (paymentId: string) => {
     }
 }
 
+// Send fee reminder to this resident
+const sendFeeReminder = async () => {
+    isSendingReminder.value = true
+    reminderError.value = null
+    reminderSent.value = false
+
+    try {
+        const result = await $fetch('/api/manage-fees/send-reminder', {
+            method: 'POST',
+            body: {
+                hostel_slug: props.hostelSlug,
+                resident_ids: [props.resident.id],
+            }
+        })
+        
+        reminderSent.value = true
+        
+        // Show warning if resident doesn't have push enabled
+        if (result.residentsWithoutPushSubscription?.length) {
+            reminderError.value = t('residentNoPushEnabled')
+        }
+        
+        // Reset after 5 seconds
+        setTimeout(() => {
+            reminderSent.value = false
+            reminderError.value = null
+        }, 5000)
+    } catch (error: any) {
+        console.error('Failed to send reminder:', error)
+        
+        // Handle rate limiting with special styling
+        if (error.status === 429) {
+            reminderError.value = error.data?.message || 'Rate limit exceeded. Please try again later.'
+        } else {
+            reminderError.value = error.data?.message || t('failedSendReminder')
+        }
+        
+        // Reset error after 8 seconds for rate limiting (longer message)
+        setTimeout(() => {
+            reminderError.value = null
+        }, 8000)
+    } finally {
+        isSendingReminder.value = false
+    }
+}
+
 onMounted(() => {
     loadData()
 })
@@ -362,6 +411,26 @@ onMounted(() => {
                               class="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
                             {{ t('unpaid') }}
                         </span>
+                    </div>
+                    
+                    <!-- Send Reminder Button (only for unpaid or partial) -->
+                    <div v-if="paymentStatus !== 'paid'" class="pt-3 border-t border-gray-200 mt-3">
+                        <button @click="sendFeeReminder"
+                                :disabled="isSendingReminder || reminderSent"
+                                class="w-full py-2 rounded-lg font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                            <Icon v-if="isSendingReminder" name="svg-spinners:90-ring-with-bg" class="text-lg" />
+                            <Icon v-else-if="reminderSent" name="material-symbols:check-circle" class="text-lg text-green-600" />
+                            <Icon v-else name="material-symbols:notifications-active" class="text-lg" />
+                            <span v-if="reminderSent">{{ t('reminderSent') }}</span>
+                            <span v-else>{{ t('sendFeeReminder') }}</span>
+                        </button>
+                        <p v-if="reminderError" 
+                           :class="[
+                               'text-xs mt-1 text-center',
+                               reminderError.includes('Rate limit') || reminderError.includes('hours ago')
+                                   ? 'text-red-600'
+                                   : 'text-amber-600'
+                           ]">{{ reminderError }}</p>
                     </div>
                 </div>
             </div>
