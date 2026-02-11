@@ -242,6 +242,47 @@ export type Database = {
           },
         ]
       }
+      hostel_reminder_logs: {
+        Row: {
+          created_at: string | null
+          hostel_id: string
+          id: string
+          message: string | null
+          reminder_type: string | null
+          sent_at: string | null
+          sent_by_user_id: string
+          target_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          hostel_id: string
+          id?: string
+          message?: string | null
+          reminder_type?: string | null
+          sent_at?: string | null
+          sent_by_user_id: string
+          target_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          hostel_id?: string
+          id?: string
+          message?: string | null
+          reminder_type?: string | null
+          sent_at?: string | null
+          sent_by_user_id?: string
+          target_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_reminder_logs_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hostel_resident_fee_info: {
         Row: {
           created_at: string
