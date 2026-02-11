@@ -58,7 +58,7 @@
                 <div>
                   <span class="font-medium text-gray-800">{{ meal.meal_name }}</span>
                   <span class="text-sm text-gray-500 ml-2">{{ formatTime(meal.timing) }}</span>
-                  <span v-if="currentMealId === meal.meal_id" class="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded">{{ t('currentMeal') }}</span>
+                  <!-- <span v-if="currentMealId === meal.meal_id" class="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded">{{ t('currentMeal') }}</span> -->
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-lg font-bold text-green-600">{{ localizeNumber(meal.today_opted_count ?? 0) }}</span>
@@ -160,7 +160,7 @@
             <thead class="bg-gray-50 border-b border-gray-400">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 z-10 bg-green-50 border-r-2 border-gray-400">{{ t('meal') }}</th>
-                <th v-for="d in days" :key="'menu-header-day-' + d.value" class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-r-2 border-gray-400" :class="[analyticsData?.value?.todayWeekday === d.value ? 'bg-green-50' : '']" style="min-width: 120px;">
+                <th v-for="d in days" :key="'menu-header-day-' + d.value" :ref="el => { if (todayWeekday === d.value) todayColumnRef = el as HTMLElement }" class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-r-2 border-gray-400" :class="[todayWeekday === d.value ? 'bg-green-50' : '']" style="min-width: 120px;">
                   {{ d.labelLong }}
                 </th>
               </tr>
@@ -171,7 +171,7 @@
                   <div>{{ meal.name }}</div>
                   <div class="text-xs font-normal text-gray-500 normal-case">{{ formatTime(meal.timing) }}</div>
                 </td>
-                <td v-for="d in days" :key="'menu-cell-' + meal.id + '-' + d.value" :class="['px-4 py-3 text-sm text-gray-700 border-r-2 border-gray-400', analyticsData?.value?.todayWeekday === d.value ? 'bg-green-200' : '']" style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal; border-bottom: 2px solid #9ca3af;">
+                <td v-for="d in days" :key="'menu-cell-' + meal.id + '-' + d.value" :class="['px-4 py-3 text-sm text-gray-700 border-r-2 border-gray-400', todayWeekday === d.value ? 'bg-green-200' : '']" style="max-width: 220px; min-width: 120px; word-break: break-word; white-space: normal; border-bottom: 2px solid #9ca3af;">
                   <span v-if="meal.weekdays.includes(d.value)">{{ meal.menu?.[d.value] || '—' }}</span>
                   <span v-else class="text-gray-300">—</span>
                 </td>
@@ -277,6 +277,9 @@ const hostelSlug = route.params.hostelslug as string
 const { isAdmin } = useCurrentUser()
 const { canManageForHostel } = useStaffContext()
 const canManageMeals = computed(() => isAdmin.value || canManageForHostel(hostelSlug, 'meals'))
+
+const todayColumnRef = ref<HTMLElement | null>(null)
+const todayWeekday = computed(() => new Date().getDay())
 
 const days = computed(() => [
   { label: 'Sun', labelLong: t('sunday'), value: 0 },
@@ -447,6 +450,15 @@ const formatDeadline = (minutes: number) => {
   }
   return `${localizeNumber(hours)} ${t('hours')} ${localizeNumber(remainingMinutes)} ${t('minutes')}`
 }
+
+// Scroll to today's column in the Weekly Food Schedule table on mount
+onMounted(() => {
+  nextTick(() => {
+    if (todayColumnRef.value) {
+      todayColumnRef.value.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    }
+  })
+})
 </script>
 
 <style></style>

@@ -349,13 +349,13 @@ onMounted(() => {
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('discount') }}</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₹</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-700 font-medium">₹</span>
                             <input v-model="discountAmount"
                                    type="number"
                                    min="0"
                                    :placeholder="t('discountPlaceholder')"
-                                   class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
                         </div>
                     </div>
                     <button @click="updateFeeInfo"
@@ -454,13 +454,13 @@ onMounted(() => {
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('amount') }}</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₹</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-700 font-medium">₹</span>
                             <input v-model="newPayment.amount"
                                    type="number"
                                    min="0"
                                    :placeholder="t('amountPlaceholder')"
-                                   class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
                         </div>
                     </div>
                     <div>
