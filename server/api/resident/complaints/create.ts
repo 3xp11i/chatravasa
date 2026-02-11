@@ -157,22 +157,22 @@ export default defineEventHandler(async (event) => {
       .eq("id", resident.hostel_id)
       .single()
 
-    // Send notification to hostel admin and staff with complaint view permission
+    // Send notification to hostel admin and staff with manage_complaints permission
     // This runs in the background and won't block the response
     sendNotificationToHostelAdmins(
       event,
       resident.hostel_id,
       {
-        title: "New Complaint Submitted",
-        body: `${type === 'public' ? 'Public' : 'Private'} complaint: ${title.trim().substring(0, 50)}${title.length > 50 ? '...' : ''}`,
-        url: hostel?.hostel_slug ? `/dashboard/hostels/${hostel.hostel_slug}/complaints` : '/dashboard',
+        title: `New Complaint: ${title.trim().substring(0, 40)}${title.length > 40 ? '...' : ''}`,
+        body: `${type === 'public' ? '[Public]' : '[Private]'} ${description.trim().substring(0, 80)}${description.length > 80 ? '...' : ''}`,
+        url: hostel?.hostel_slug ? `/dashboard/hostels/${hostel.hostel_slug}/manage-complaints` : '/dashboard',
         type: "complaint",
         data: {
           complaintId: complaint.id,
           complaintType: type,
         },
       },
-      "view_complaints" // Only notify staff who can view complaints
+      "manage_complaints" // Only notify staff who can manage complaints
     ).catch(err => {
       // Log error but don't fail the request
       console.error("Failed to send complaint notification:", err)

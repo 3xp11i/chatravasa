@@ -1,6 +1,7 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
 import { isStaffForHostel, staffHasPermission } from "#imports"
 import type { Database } from "~/types/database.types"
+import { sendNotification } from "../../utils/notifications"
 
 export default defineEventHandler(async (event) => {
   try {
@@ -46,7 +47,7 @@ export default defineEventHandler(async (event) => {
     // Get the complaint and verify it belongs to this hostel
     const { data: complaint, error: complaintErr } = await client
       .from("hostel_complaints")
-      .select("id, hostel_id, status")
+      .select("id, hostel_id, status, author, title")
       .eq("id", complaint_id)
       .single()
 
@@ -82,6 +83,23 @@ export default defineEventHandler(async (event) => {
 
     if (insertErr || !reply) {
       throw createError({ statusCode: 500, statusMessage: insertErr?.message || "Failed to add reply" })
+    }
+
+    // Send notification to complaint author (if not the same person replying)
+    if (complaint.author && complaint.author !== userId) {
+      sendNotification(event, {
+        userId: complaint.author,
+        title: `Reply: ${complaint.title.substring(0, 40)}${complaint.title.length > 40 ? '...' : ''}`,
+        body: message.trim().substring(0, 80) + (message.length > 80 ? '...' : ''),
+        url: `/resident/complaints`,
+        type: "complaint",
+        data: {
+          complaintId: complaint_id,
+          replyId: reply.id,
+        },
+      }).catch(err => {
+        console.error("Failed to send reply notification:", err)
+      })
     }
 
     return { 

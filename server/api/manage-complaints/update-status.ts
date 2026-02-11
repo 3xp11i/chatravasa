@@ -1,6 +1,7 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
 import { isStaffForHostel, staffHasPermission } from "#imports"
 import type { Database } from "~/types/database.types"
+import { sendNotification } from "../../utils/notifications"
 
 export default defineEventHandler(async (event) => {
   try {
@@ -51,7 +52,7 @@ export default defineEventHandler(async (event) => {
     // Get the complaint and verify it belongs to this hostel
     const { data: complaint, error: complaintErr } = await client
       .from("hostel_complaints")
-      .select("id, status, hostel_id")
+      .select("id, status, hostel_id, author, title")
       .eq("id", complaint_id)
       .single()
 
@@ -78,6 +79,23 @@ export default defineEventHandler(async (event) => {
 
     if (updateErr) {
       throw createError({ statusCode: 500, statusMessage: updateErr.message })
+    }
+
+    // Send notification to complaint author about status change
+    if (complaint.author) {
+      sendNotification(event, {
+        userId: complaint.author,
+        title: `Status Update: ${complaint.title.substring(0, 35)}${complaint.title.length > 35 ? '...' : ''}`,
+        body: `Your complaint is now being addressed. Status changed to "Ongoing".`,
+        url: `/resident/complaints`,
+        type: "complaint",
+        data: {
+          complaintId: complaint_id,
+          newStatus: "ongoing",
+        },
+      }).catch(err => {
+        console.error("Failed to send status update notification:", err)
+      })
     }
 
     return { success: true, complaint: updatedComplaint }
