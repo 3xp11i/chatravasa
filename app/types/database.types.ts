@@ -172,6 +172,108 @@ export type Database = {
           },
         ]
       }
+      hostel_expense_categories: {
+        Row: {
+          created_at: string | null
+          default_amount: string | null
+          description: string | null
+          hostel_id: string
+          id: string
+          is_recurring: boolean | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          default_amount?: string | null
+          description?: string | null
+          hostel_id: string
+          id?: string
+          is_recurring?: boolean | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          default_amount?: string | null
+          description?: string | null
+          hostel_id?: string
+          id?: string
+          is_recurring?: boolean | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_expense_categories_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_expenses: {
+        Row: {
+          amount: string
+          category_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          expense_date: string
+          hostel_id: string
+          id: string
+          month_index: number
+          title: string
+          year: number
+        }
+        Insert: {
+          amount: string
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expense_date: string
+          hostel_id: string
+          id?: string
+          month_index: number
+          title: string
+          year: number
+        }
+        Update: {
+          amount?: string
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expense_date?: string
+          hostel_id?: string
+          id?: string
+          month_index?: number
+          title?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "hostel_expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hostel_expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hostel_expenses_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hostel_fee_categories: {
         Row: {
           amount: string
