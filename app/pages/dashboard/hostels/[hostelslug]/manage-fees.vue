@@ -7,6 +7,14 @@
             </div>
             <!-- Action Buttons -->
             <div v-if="canManageFees" class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <!-- Quick Mark Paid Button -->
+                <button 
+                    class="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 transition-colors"
+                    @click="openBulkMarkPaidModal"
+                >
+                    <Icon name="material-symbols:check-circle" class="text-xl mr-1" />
+                    {{ t('quickMarkPaid') }}
+                </button>
                 <!-- Send Reminder Button -->
                 <button 
                     class="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
@@ -320,6 +328,7 @@ import { ModalsContainer, useModal } from 'vue-final-modal'
 import placeholderAvatar from '~/assets/images/avatar-placeholder.svg'
 import ManageFeeCategoriesModal from '~/components/modals/ManageFeeCategoriesModal.vue'
 import ResidentFeeDetailsModal from '~/components/modals/ResidentFeeDetailsModal.vue'
+import BulkMarkPaidModal from '~/components/modals/BulkMarkPaidModal.vue'
 
 const { t } = useI18n()
 const { localizeNumber } = useNumberLocalization()
@@ -455,6 +464,22 @@ const openResidentFeeDetails = (resident: ResidentWithFees) => {
         component: ResidentFeeDetailsModal,
         attrs: {
             resident,
+            hostelSlug,
+            onClose() {
+                close()
+            },
+            onUpdated() {
+                refresh()
+            },
+        },
+    })
+    open()
+}
+
+const openBulkMarkPaidModal = () => {
+    const { open, close } = useModal({
+        component: BulkMarkPaidModal,
+        attrs: {
             hostelSlug,
             onClose() {
                 close()
