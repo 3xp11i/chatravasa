@@ -169,14 +169,22 @@
               </div>
             </div>
 
-            <!-- Resolve Button (only for own complaints that are not resolved) -->
-            <button
-              v-if="complaint.is_own && complaint.status !== 'resolved'"
-              @click.stop="handleResolve(complaint.id)"
-              class="text-sm text-green-600 hover:text-green-700 font-medium"
-            >
-              Mark Resolved
-            </button>
+            <!-- Action Buttons for own complaints -->
+            <div v-if="complaint.is_own" class="flex items-center gap-3">
+              <button
+                v-if="complaint.status !== 'resolved'"
+                @click.stop="handleResolve(complaint.id)"
+                class="text-sm text-green-600 hover:text-green-700 font-medium"
+              >
+                Mark Resolved
+              </button>
+              <button
+                @click.stop="handleDelete(complaint.id)"
+                class="text-sm text-red-600 hover:text-red-700 font-medium"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -211,6 +219,7 @@ const {
   resolveComplaint,
   toggleUpvote,
   addReply,
+  deleteComplaint,
 } = useComplaintsData()
 
 const currentFilter = ref<'my' | 'public' | undefined>(undefined)
@@ -282,6 +291,17 @@ async function handleResolve(complaintId: string) {
     await resolveComplaint(complaintId)
   } catch (err) {
     console.error('Failed to resolve complaint:', err)
+  }
+}
+
+async function handleDelete(complaintId: string) {
+  if (!confirm('Are you sure you want to delete this complaint? This action cannot be undone.')) {
+    return
+  }
+  try {
+    await deleteComplaint(complaintId)
+  } catch (err) {
+    console.error('Failed to delete complaint:', err)
   }
 }
 

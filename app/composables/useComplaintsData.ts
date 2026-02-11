@@ -157,6 +157,25 @@ export const useComplaintsData = () => {
     }
   }
 
+  // Delete own complaint
+  const deleteComplaint = async (complaintId: string) => {
+    try {
+      await $fetch<{ success: boolean }>(
+        '/api/resident/complaints/delete',
+        {
+          method: 'POST',
+          body: { complaint_id: complaintId },
+        }
+      )
+
+      // Refresh complaints list after deletion
+      await refresh()
+    } catch (err: any) {
+      error.value = err?.data?.statusMessage || err?.message || 'Failed to delete complaint'
+      throw err
+    }
+  }
+
   return {
     // Reactive state
     complaints,
@@ -171,6 +190,7 @@ export const useComplaintsData = () => {
     resolveComplaint,
     toggleUpvote,
     addReply,
+    deleteComplaint,
     refresh,
   }
 }
