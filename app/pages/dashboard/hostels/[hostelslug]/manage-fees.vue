@@ -141,36 +141,39 @@
 
                     <!-- Resident Info -->
                     <div class="flex-1 min-w-0">
-                        <div class="font-semibold text-gray-900 truncate">
+                        <div class="font-semibold text-gray-900">
                             {{ resident.first_name }} {{ resident.last_name }}
                         </div>
-                        <div class="text-sm text-gray-500 mt-0.5">
-                            {{ t('room') }} {{ resident.room || t('noRoom') }}
+                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+                            <span class="text-sm text-gray-500">
+                                {{ t('room') }} {{ resident.room || t('noRoom') }}
+                            </span>
+                            <!-- Status Badge -->
+                            <span v-if="resident.payment_status === 'paid'"
+                                  class="px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded-full whitespace-nowrap">
+                                {{ t('paid') }}
+                            </span>
+                            <span v-else-if="resident.payment_status === 'partial'"
+                                  class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
+                                {{ t('partial') }}
+                            </span>
+                            <span v-else
+                                  class="px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 rounded-full whitespace-nowrap">
+                                {{ t('unpaid') }}
+                            </span>
                         </div>
                         
                         <!-- Fee Information -->
-                        <div v-if="resident.fee_category" class="mt-2 flex items-center gap-2 text-sm">
+                        <div v-if="resident.fee_category" class="mt-2 flex flex-wrap items-center gap-2 text-sm">
                             <span class="text-gray-700 font-medium">₹{{ localizeNumber(resident.total_fee_amount) }}</span>
                             <span class="text-gray-400">•</span>
-                            <span class="text-xs text-gray-500 truncate">{{ resident.fee_category }}</span>
+                            <span class="text-xs text-gray-500">{{ resident.fee_category }}</span>
                         </div>
                         <div v-else class="mt-2 text-xs text-gray-400 italic">{{ t('noCategoryAssigned') }}</div>
                     </div>
 
-                    <!-- Status Badge -->
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span v-if="resident.payment_status === 'paid'"
-                              class="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full whitespace-nowrap">
-                            {{ t('paid') }}
-                        </span>
-                        <span v-else-if="resident.payment_status === 'partial'"
-                              class="px-3 py-1 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
-                            {{ t('partial') }}
-                        </span>
-                        <span v-else
-                              class="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full whitespace-nowrap">
-                            {{ t('unpaid') }}
-                        </span>
+                    <!-- Chevron only -->
+                    <div class="shrink-0">
                         <Icon name="material-symbols:chevron-right"
                               class="text-gray-400 text-xl" />
                     </div>
