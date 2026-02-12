@@ -24,6 +24,15 @@
 
         <!-- Right side actions -->
         <div class="flex items-center gap-2">
+            <!-- Reload Button -->
+            <button 
+                @click="reloadPage"
+                class="tapCircle"
+                :title="t('reload')"
+            >
+                <Icon name="material-symbols:refresh" class="text-2xl text-gray-800" />
+            </button>
+
             <!-- Notifications Button - shown for all authenticated users on dashboard/resident pages -->
             <button 
                 v-if="authUser && showNotificationButton"
@@ -136,6 +145,11 @@ const navigateBack = () => {
     } else {
         navigateTo('/');
     }
+};
+
+// Reload the current page
+const reloadPage = () => {
+    window.location.reload();
 };
 
 </script>
