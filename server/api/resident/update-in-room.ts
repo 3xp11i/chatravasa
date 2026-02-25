@@ -1,15 +1,18 @@
-import { serverSupabaseUser, serverSupabaseClient } from "#supabase/server";
+import { getAuthUser, getAuthenticatedClient } from "../../utils/auth";
 import type { Database } from "~/types/database.types";
 
 export default defineEventHandler(async (event) => {
   try {
-    const user = await serverSupabaseUser(event);
+    // Use custom auth utility that supports both Authorization header (Capacitor) and cookies (web)
+    const user = await getAuthUser(event);
     if (!user) {
+      console.log('[update-in-room] No authenticated user found');
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
     }
 
-    const client = await serverSupabaseClient<Database>(event);
-    const userId = (user as any).sub || (user as any).id;
+    const client = await getAuthenticatedClient(event);
+    const userId = user.sub || user.id;
+    console.log('[update-in-room] User authenticated:', userId);
     const method = (event as any).node?.req?.method || "POST";
 
     if (method === "GET") {

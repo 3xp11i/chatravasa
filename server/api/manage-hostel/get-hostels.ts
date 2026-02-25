@@ -1,16 +1,19 @@
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
-    const user = await serverSupabaseUser(event);
+    // Use custom auth utility that supports both Authorization header (Capacitor) and cookies (web)
+    const user = await getAuthUser(event);
     if (!user) {
+      console.log('[get-hostels] No authenticated user found');
       throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
     }
-    const client = await serverSupabaseClient(event);
+    const client = await getAuthenticatedClient(event);
     const query = getQuery(event);
 
     // Use 'sub' which is the user ID in the JWT
-    const userId = user.sub;
+    const userId = user.sub || user.id;
+    console.log('[get-hostels] User authenticated:', userId);
 
     // Get query parameters for filtering and pagination
     const page = parseInt(query.page as string) || 1;

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Chatravasa</string>
+    <string name="title_activity_main">Chatravasa</string>
+    <string name="package_name">com.chatravasa.management</string>
+    <string name="custom_url_scheme">com.chatravasa.management</string>
+</resources>

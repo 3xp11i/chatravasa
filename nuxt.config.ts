@@ -144,7 +144,16 @@ export default defineNuxtConfig({
 		},
 		clientOptions: {
 			auth: {
+				// Enable session persistence across app restarts
 				persistSession: true,
+				// Automatically refresh tokens before they expire
+				autoRefreshToken: true,
+				// Detect and use sessions from URL (critical for mobile OAuth and magic links)
+				detectSessionInUrl: true,
+				// Use localStorage for session storage (works in both web and Capacitor)
+				storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+				// PKCE flow for enhanced security in native apps
+				flowType: 'pkce',
 			},
 		},
 	},

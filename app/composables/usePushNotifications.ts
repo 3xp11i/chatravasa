@@ -1,3 +1,6 @@
+import { PushNotifications } from '@capacitor/push-notifications';
+import { Capacitor } from '@capacitor/core';
+
 /**
  * Push Notifications Composable
  * 
@@ -6,6 +9,7 @@
  * - Requesting notification permission
  * - Subscribing/unsubscribing to push notifications
  * - Syncing subscription with server
+ * - Native push notifications for Android/iOS via Capacitor
  * 
  * @example
  * const { isSupported, permission, subscribe, unsubscribe } = usePushNotifications()
@@ -14,6 +18,7 @@
 export const usePushNotifications = () => {
   const config = useRuntimeConfig()
   const user = useSupabaseUser()
+  const { isNative, isWeb } = usePlatform()
 
   // Reactive state for push notification support and status
   const isSupported = ref(false)
@@ -25,17 +30,83 @@ export const usePushNotifications = () => {
   /**
    * Initialize push notification state on mount
    * Checks browser support and current permission status
+   * For native apps, initializes Capacitor Push Notifications
    */
   const initialize = async () => {
     if (!import.meta.client) return
 
-    // Check if browser supports push notifications
-    isSupported.value = 'serviceWorker' in navigator && 'PushManager' in window
-    permission.value = Notification.permission
+    if (isNative) {
+      // Native platform - use Capacitor Push Notifications
+      isSupported.value = true
+      await initializeNativePush()
+    } else {
+      // Web platform - use Web Push API
+      isSupported.value = 'serviceWorker' in navigator && 'PushManager' in window
+      permission.value = Notification.permission
 
-    // Check if already subscribed
-    if (isSupported.value && permission.value === 'granted') {
-      await checkExistingSubscription()
+      // Check if already subscribed
+      if (isSupported.value && permission.value === 'granted') {
+        await checkExistingSubscription()
+      }
+    }
+  }
+
+  /**
+   * Initialize native push notifications for Capacitor
+   */
+  const initializeNativePush = async () => {
+    try {
+      // Add listeners for push notifications
+      await PushNotifications.addListener('registration', (token) => {
+        console.log('[Push Native] Registration token:', token.value)
+        // Save token to server
+        saveNativeToken(token.value)
+      })
+
+      await PushNotifications.addListener('registrationError', (error) => {
+        console.error('[Push Native] Registration error:', error)
+      })
+
+      await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        console.log('[Push Native] Notification received:', notification)
+      })
+
+      await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+        console.log('[Push Native] Notification action performed:', notification)
+      })
+
+      // Check permission status
+      const permStatus = await PushNotifications.checkPermissions()
+      permission.value = permStatus.receive === 'granted' ? 'granted' : 
+                        permStatus.receive === 'denied' ? 'denied' : 'default'
+      
+      if (permStatus.receive === 'granted') {
+        isSubscribed.value = true
+      }
+    } catch (err) {
+      console.error('[Push Native] Initialization error:', err)
+    }
+  }
+
+  /**
+   * Save native push token to server
+   */
+  const saveNativeToken = async (token: string) => {
+    const userId = getUserId()
+    if (!userId) return
+
+    try {
+      await $fetch('/api/push/subscribe-native', {
+        method: 'POST',
+        body: {
+          token,
+          userId,
+          platform: Capacitor.getPlatform()
+        }
+      })
+      isSubscribed.value = true
+    } catch (err) {
+      console.error('[Push Native] Failed to save token:', err)
     }
   }
 
@@ -54,7 +125,7 @@ export const usePushNotifications = () => {
 
   /**
    * Request notification permission from user
-   * Shows browser-native permission dialog
+   * Shows browser-native permission dialog or native permission prompt
    * @returns Boolean indicating if permission was granted
    */
   const requestPermission = async (): Promise<boolean> => {
@@ -64,9 +135,17 @@ export const usePushNotifications = () => {
     }
 
     try {
-      const result = await Notification.requestPermission()
-      permission.value = result
-      return result === 'granted'
+      if (isNative) {
+        // Native platform - use Capacitor
+        const permStatus = await PushNotifications.requestPermissions()
+        permission.value = permStatus.receive === 'granted' ? 'granted' : 'denied'
+        return permStatus.receive === 'granted'
+      } else {
+        // Web platform - use browser API
+        const result = await Notification.requestPermission()
+        permission.value = result
+        return result === 'granted'
+      }
     } catch (err) {
       console.error('Error requesting permission:', err)
       error.value = 'Failed to request permission'
@@ -94,6 +173,7 @@ export const usePushNotifications = () => {
   /**
    * Subscribe user to push notifications
    * Creates a push subscription and saves it to the server
+   * Handles both web and native platforms
    * @returns The push subscription object or null on failure
    */
   const subscribe = async (): Promise<PushSubscription | null> => {
@@ -119,45 +199,55 @@ export const usePushNotifications = () => {
     error.value = null
 
     try {
-      // Check if VAPID key is configured
-      const vapidKey = config.public.vapidPublicKey as string
-      if (!vapidKey) {
-        throw new Error('VAPID public key not configured')
+      if (isNative) {
+        // Native platform - register for push notifications
+        console.log('[Push Native] Registering for push...')
+        await PushNotifications.register()
+        // Token will be handled by the 'registration' listener
+        isSubscribed.value = true
+        return null // Native doesn't return a subscription object
+      } else {
+        // Web platform - use existing web push logic
+        // Check if VAPID key is configured
+        const vapidKey = config.public.vapidPublicKey as string
+        if (!vapidKey) {
+          throw new Error('VAPID public key not configured')
+        }
+
+        console.log('[Push] Getting service worker registration...')
+        const registration = await navigator.serviceWorker.ready
+        console.log('[Push] Service worker ready:', registration)
+
+        // Check for existing subscription first
+        let subscription = await registration.pushManager.getSubscription()
+        console.log('[Push] Existing subscription:', subscription)
+
+        if (!subscription) {
+          console.log('[Push] Creating new subscription with VAPID key:', vapidKey.substring(0, 20) + '...')
+          // Create new subscription with VAPID public key
+          // Convert base64 public key to Uint8Array for the subscribe call
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true, // Required for Chrome - ensures notifications are always shown
+            applicationServerKey: urlBase64ToUint8Array(vapidKey),
+          } as PushSubscriptionOptionsInit)
+          console.log('[Push] Subscription created:', subscription)
+        }
+
+        // Save subscription to server with the userId we already validated
+        console.log('[Push] Saving subscription to server for user:', userId)
+        await $fetch('/api/push/subscribe', {
+          method: 'POST',
+          body: {
+            subscription: subscription.toJSON(),
+            userId,
+          },
+        })
+
+        isSubscribed.value = true
+        error.value = null
+        console.log('[Push] Successfully subscribed!')
+        return subscription
       }
-
-      console.log('[Push] Getting service worker registration...')
-      const registration = await navigator.serviceWorker.ready
-      console.log('[Push] Service worker ready:', registration)
-
-      // Check for existing subscription first
-      let subscription = await registration.pushManager.getSubscription()
-      console.log('[Push] Existing subscription:', subscription)
-
-      if (!subscription) {
-        console.log('[Push] Creating new subscription with VAPID key:', vapidKey.substring(0, 20) + '...')
-        // Create new subscription with VAPID public key
-        // Convert base64 public key to Uint8Array for the subscribe call
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true, // Required for Chrome - ensures notifications are always shown
-          applicationServerKey: urlBase64ToUint8Array(vapidKey),
-        } as PushSubscriptionOptionsInit)
-        console.log('[Push] Subscription created:', subscription)
-      }
-
-      // Save subscription to server with the userId we already validated
-      console.log('[Push] Saving subscription to server for user:', userId)
-      await $fetch('/api/push/subscribe', {
-        method: 'POST',
-        body: {
-          subscription: subscription.toJSON(),
-          userId,
-        },
-      })
-
-      isSubscribed.value = true
-      error.value = null
-      console.log('[Push] Successfully subscribed!')
-      return subscription
     } catch (err: any) {
       console.error('[Push] Subscription failed:', err)
       // Provide more specific error messages
@@ -179,6 +269,7 @@ export const usePushNotifications = () => {
   /**
    * Unsubscribe user from push notifications
    * Removes subscription from browser and server
+   * Handles both web and native platforms
    * @returns Boolean indicating success
    */
   const unsubscribe = async (): Promise<boolean> => {
@@ -186,14 +277,22 @@ export const usePushNotifications = () => {
     error.value = null
 
     try {
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
+      if (isNative) {
+        // Native platform - no direct unsubscribe, just remove from server
+        // You would need to store the token somewhere to remove it
+        console.log('[Push Native] Unsubscribe not fully implemented for native')
+        // TODO: Implement server-side token removal for native
+      } else {
+        // Web platform
+        const registration = await navigator.serviceWorker.ready
+        const subscription = await registration.pushManager.getSubscription()
 
-      if (subscription) {
-        // Unsubscribe from browser
-        await subscription.unsubscribe()
-        // Remove from server
-        await removeSubscriptionFromServer(subscription.endpoint)
+        if (subscription) {
+          // Unsubscribe from browser
+          await subscription.unsubscribe()
+          // Remove from server
+          await removeSubscriptionFromServer(subscription.endpoint)
+        }
       }
 
       isSubscribed.value = false

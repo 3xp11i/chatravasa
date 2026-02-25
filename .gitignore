@@ -26,3 +26,17 @@ logs
 
 # PWA generated files
 sw.*
+
+# Capacitor/Android
+android/app/src/main/assets/public
+android/app/build
+android/build
+android/.gradle
+android/local.properties
+*.jks
+*.keystore
+google-services.json
+
+# Firebase service account (DO NOT COMMIT)
+fcm-service-account.json
+server/config/fcm-service-account.json

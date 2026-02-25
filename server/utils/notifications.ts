@@ -3,6 +3,7 @@
  * 
  * Server-side utility for sending push notifications from any API endpoint.
  * This abstracts the notification sending logic for easy reuse.
+ * Supports both Web Push (PWA) and FCM (Android native app).
  * 
  * @example
  * import { sendNotification, sendNotificationToHostelAdmins } from "~/server/utils/notifications"
@@ -126,9 +127,11 @@ export async function sendNotification(
   interface PushSubscription {
     id: string
     user_id: string
-    endpoint: string
-    p256dh: string
-    auth: string
+    endpoint: string | null
+    p256dh: string | null
+    auth: string | null
+    native_token: string | null
+    platform: string | null
   }
 
   // Get push subscriptions
@@ -149,40 +152,109 @@ export async function sendNotification(
   let failed = 0
 
   if (subscriptions?.length) {
-    const results = await Promise.allSettled(
-      subscriptions.map(async (sub: PushSubscription) => {
-        try {
-          await webpush.sendNotification(
-            {
-              endpoint: sub.endpoint,
-              keys: {
-                p256dh: sub.p256dh,
-                auth: sub.auth,
-              },
-            },
-            payload
-          )
-          return true
-        } catch (err: any) {
-          // Clean up invalid subscriptions
-          if (err.statusCode === 410 || err.statusCode === 404) {
-            await supabase
-              .from("push_subscriptions")
-              .delete()
-              .eq("endpoint", sub.endpoint)
+    // Separate subscriptions by platform
+    const webSubs = subscriptions.filter(sub => !sub.platform || sub.platform === 'web')
+    const nativeSubs = subscriptions.filter(sub => sub.platform === 'android' || sub.platform === 'ios')
+
+    // Send to web (PWA) subscriptions using Web Push
+    if (webSubs.length > 0) {
+      const webResults = await Promise.allSettled(
+        webSubs.map(async (sub: PushSubscription) => {
+          // Skip if missing required web push fields
+          if (!sub.endpoint || !sub.p256dh || !sub.auth) {
+            return false
           }
-          return false
+
+          try {
+            await webpush.sendNotification(
+              {
+                endpoint: sub.endpoint,
+                keys: {
+                  p256dh: sub.p256dh,
+                  auth: sub.auth,
+                },
+              },
+              payload
+            )
+            return true
+          } catch (err: any) {
+            // Clean up invalid subscriptions
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await supabase
+                .from("push_subscriptions")
+                .delete()
+                .eq("endpoint", sub.endpoint)
+            }
+            return false
+          }
+        })
+      )
+
+      webResults.forEach(result => {
+        if (result.status === "fulfilled" && result.value) {
+          sent++
+        } else {
+          failed++
         }
       })
-    )
+    }
 
-    results.forEach(result => {
-      if (result.status === "fulfilled" && result.value) {
-        sent++
-      } else {
-        failed++
-      }
-    })
+    // Send to native (Android/iOS) subscriptions using FCM
+    if (nativeSubs.length > 0) {
+      const { messaging } = await import('./firebase-admin')
+      
+      const nativeResults = await Promise.allSettled(
+        nativeSubs.map(async (sub: PushSubscription) => {
+          // Skip if missing required native token
+          if (!sub.native_token) {
+            return false
+          }
+
+          try {
+            const message = {
+              token: sub.native_token,
+              notification: {
+                title,
+                body
+              },
+              data: {
+                url: url || "/",
+                ...(data || {})
+              },
+              android: {
+                priority: 'high' as const,
+                notification: {
+                  icon: 'ic_launcher',
+                  sound: 'default'
+                }
+              }
+            }
+
+            await messaging.send(message)
+            return true
+          } catch (err: any) {
+            console.error('FCM send error:', err)
+            // Clean up invalid tokens (invalid-registration-token, registration-token-not-registered)
+            if (err.code === 'messaging/invalid-registration-token' || 
+                err.code === 'messaging/registration-token-not-registered') {
+              await supabase
+                .from("push_subscriptions")
+                .delete()
+                .eq("native_token", sub.native_token)
+            }
+            return false
+          }
+        })
+      )
+
+      nativeResults.forEach(result => {
+        if (result.status === "fulfilled" && result.value) {
+          sent++
+        } else {
+          failed++
+        }
+      })
+    }
   }
 
   return { sent, failed, stored: notificationRecords.length }

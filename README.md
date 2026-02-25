@@ -2,6 +2,37 @@
 
 This app will be for both the owner and residents.
 
+## Platform Support
+
+This app runs as:
+- **Web PWA** - Progressive Web App accessible via browser
+- **Android App** - Native Android app via Google Play Store
+
+Both platforms share the same codebase and functionality.
+
+### Documentation
+
+- **[ANDROID_SETUP_SUMMARY.md](ANDROID_SETUP_SUMMARY.md)** - Android setup overview
+- **[ANDROID_BUILD.md](ANDROID_BUILD.md)** - Complete build guide for Android
+- **[FIREBASE_SETUP.md](FIREBASE_SETUP.md)** - Firebase/FCM setup for push notifications
+- **[ANDROID_RELEASE_CHECKLIST.md](ANDROID_RELEASE_CHECKLIST.md)** - Pre-release checklist
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions
+
+### Quick Start
+
+**For Web Development:**
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production
+```
+
+**For Android Development:**
+```bash
+npm run android:build    # Build and sync to Android
+npm run android:open     # Open in Android Studio
+android-start.bat        # Windows quick-start script
+```
+
 ## Admin Flow
 
 - I add the admin's name & phone number to the database
