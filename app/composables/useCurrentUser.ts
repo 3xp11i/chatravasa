@@ -12,6 +12,7 @@ export const useCurrentUser = () => {
   const loading = useState<boolean>('user-profile-loading', () => false)
   const error = useState<string | null>('user-profile-error', () => null)
   const hasFetched = useState<boolean>('user-profile-fetched', () => false)
+  const isFetching = useState<boolean>('user-profile-is-fetching', () => false)
 
   const isAdmin = computed(() => userProfile.value?.is_admin ?? authUser.value?.user_metadata?.is_admin ?? false)
   const isResident = computed(() => !!authUser.value && !isAdmin.value)
@@ -26,6 +27,15 @@ export const useCurrentUser = () => {
       return
     }
 
+    // Prevent concurrent fetches (mutex)
+    if (isFetching.value) {
+      // Wait for current fetch to complete
+      while (isFetching.value) {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+      return
+    }
+
     // Try to get userId from authUser - could be in 'id' or 'sub' field
     const userId = authUser.value?.id || (authUser.value as any)?.user?.id || (authUser.value as any)?.sub
     if (!userId) {
@@ -33,6 +43,7 @@ export const useCurrentUser = () => {
       return
     }
 
+    isFetching.value = true
     loading.value = true
     error.value = null
 
@@ -62,6 +73,7 @@ export const useCurrentUser = () => {
       hasFetched.value = true
     } finally {
       loading.value = false
+      isFetching.value = false
     }
   }
 

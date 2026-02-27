@@ -58,12 +58,14 @@ const defaultContext: StaffContext = {
 
 export const useStaffContext = () => {
   const user = useSupabaseUser();
+  const { userProfile, fetchUserProfile } = useCurrentUser();
   
   // Use useState for shared state across all components - prevents refetching
   const staffContext = useState<StaffContext>('staff-context', () => ({ ...defaultContext }));
   const loading = useState<boolean>('staff-context-loading', () => false);
   const error = useState<string>('staff-context-error', () => '');
   const hasFetched = useState<boolean>('staff-context-fetched', () => false);
+  const isFetching = useState<boolean>('staff-context-is-fetching', () => false);
 
   /**
    * Fetch staff member's details, their roles, and permissions
@@ -72,6 +74,11 @@ export const useStaffContext = () => {
   const fetchStaffContext = async (force = false) => {
     // Skip if already fetched and not forcing refresh
     if (hasFetched.value && !force) {
+      return;
+    }
+
+    // Prevent concurrent fetches (mutex)
+    if (isFetching.value) {
       return;
     }
 
@@ -89,20 +96,19 @@ export const useStaffContext = () => {
       return;
     }
 
+    isFetching.value = true;
     loading.value = true;
     error.value = '';
 
     try {
       const supabase = useSupabaseClient();
 
-      // Get staff member's profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, phone, avatar')
-        .eq('id', userId)
-        .single();
+      // Use profile from useCurrentUser instead of fetching again
+      // This prevents duplicate profile fetches
+      await fetchUserProfile();
+      const profile = userProfile.value;
 
-      if (profileError || !profile) {
+      if (!profile) {
         error.value = 'Failed to fetch profile';
         return;
       }
@@ -241,6 +247,7 @@ export const useStaffContext = () => {
       hasFetched.value = true;
     } finally {
       loading.value = false;
+      isFetching.value = false;
     }
   };
 
@@ -314,6 +321,7 @@ export const useStaffContext = () => {
   const clearStaffContext = () => {
     staffContext.value = { ...defaultContext };
     hasFetched.value = false;
+    isFetching.value = false;
     error.value = '';
   };
 
