@@ -104,7 +104,9 @@ async function requestOtp(isResend = false) {
   errorMessage.value = '';
 
   try {
-    // First, check if user exists in auth.users or resident_invites
+    // TEMPORARY: Skip user validation for testing
+    // Uncomment below to re-enable validation:
+    /*
     const checkRes = await $fetch('/api/auth/check-resident', {
       method: 'POST',
       body: { phone: normalizedPhone.value },
@@ -116,6 +118,7 @@ async function requestOtp(isResend = false) {
       loading.value = false;
       return;
     }
+    */
 
     // Proceed with OTP request
     const { error } = await supabase.auth.signInWithOtp({
