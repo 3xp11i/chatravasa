@@ -45,6 +45,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@types/web-push": "^3.6.4",
     "@vite-pwa/assets-generator": "^1.0.2",
     "supabase": "^2.67.3"
