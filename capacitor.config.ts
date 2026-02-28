@@ -5,18 +5,15 @@ const config: CapacitorConfig = {
   appName: 'Chatravasa',
   webDir: '.output/public',
   server: {
-    // Use the remote server URL for API calls and initial load
-    // This makes the Capacitor app behave like a WebView pointing to your website
-    url: 'https://app.chatravasa.com',
+    // Use https scheme for local files (required for some APIs like cookies)
     androidScheme: 'https',
     // Allows Capacitor app to make requests to your API
     allowNavigation: ['app.chatravasa.com', '*.chatravasa.com', '*.supabase.co']
   },
-  // Deep Links configuration for handling auth callbacks and navigation
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: true // Set to false for production
+    webContentsDebuggingEnabled: true // Set to false for production release
   },
   plugins: {
     SplashScreen: {

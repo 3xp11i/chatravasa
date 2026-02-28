@@ -15,6 +15,11 @@ export default defineEventHandler((event) => {
     return
   }
 
+  // Skip OPTIONS preflight requests - they are handled by CORS middleware
+  if (event.method === 'OPTIONS') {
+    return
+  }
+
   // Check if there's an Authorization header
   const authHeader = getHeader(event, 'Authorization')
   
