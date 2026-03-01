@@ -65,7 +65,7 @@ export const getApiUrl = (path: string): string => {
 
   if (isNative) {
     // Hardcoded for non-reactive context - matches nuxt.config.ts default
-    const baseUrl = 'https://dev.app.chatravasa.com';
+    const baseUrl = 'https://chatravasa-git-androidversion-prakhartiwari0s-projects.vercel.app';
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${baseUrl}${cleanPath}`;
   }

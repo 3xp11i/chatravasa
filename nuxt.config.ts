@@ -180,7 +180,7 @@ export default defineNuxtConfig({
 			// VAPID public key for push notifications (exposed to client)
 			vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || "",
 			// API base URL for native apps (empty for web, full URL for native)
-			apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || "https://dev.app.chatravasa.com",
+			apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || "https://chatravasa-git-androidversion-prakhartiwari0s-projects.vercel.app",
 		},
 	},
 
