@@ -1,24 +1,24 @@
-import { setResponseHeaders, sendNoContent, getHeader } from 'h3'
+import { setResponseHeaders, sendNoContent, setResponseStatus } from 'h3'
 
 /**
  * CORS middleware for handling cross-origin requests from native apps.
  * 
- * Handles OPTIONS preflight requests and sets proper CORS headers.
- * NOTE: We use wildcard origin (*) without credentials header per CORS spec.
+ * CRITICAL: This middleware MUST run first (hence 01. prefix) and handle
+ * OPTIONS preflight requests before any auth/routing logic.
  */
 export default defineEventHandler((event) => {
   // Set CORS headers on ALL responses
-  // Using wildcard for mobile apps, with Vary header for proper caching
   setResponseHeaders(event, {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept',
-    'Access-Control-Max-Age': '3600', // 1 hour cache for preflight
-    'Vary': 'Origin', // Important for proper caching of CORS responses
+    'Access-Control-Max-Age': '3600',
+    'Vary': 'Origin',
   })
 
-  // Handle OPTIONS preflight requests immediately
+  // Handle OPTIONS preflight - must terminate immediately
   if (event.method === 'OPTIONS') {
-    return sendNoContent(event)
+    setResponseStatus(event, 204)
+    return ''  // Return empty body and stop middleware chain
   }
 })

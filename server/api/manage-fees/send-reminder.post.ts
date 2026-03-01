@@ -20,20 +20,21 @@
  * Only accessible by hostel admin or staff with manage_fees permission.
  */
 
-import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from "#supabase/server"
+import { serverSupabaseServiceRole } from "#supabase/server"
 import { isStaffForHostel, staffHasPermission } from "#imports"
 import type { Database } from "~/types/database.types"
 import { sendNotification } from "../../utils/notifications"
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
     // Verify user is authenticated
-    const user = await serverSupabaseUser(event)
+    const user = await getAuthUser(event)
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
     }
 
-    const client = await serverSupabaseClient<Database>(event)
+    const client = await getAuthenticatedClient(event)
     const serviceClient = await serverSupabaseServiceRole(event)
     const userId = (user as any).sub || (user as any).id
     const body = await readBody(event)

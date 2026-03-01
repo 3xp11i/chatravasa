@@ -1,10 +1,10 @@
 // get-hostel-by-slug
 
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
 	try {
-		const user = await serverSupabaseUser(event);
+		const user = await getAuthUser(event);
 		if (!user) {
 			throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
 		}
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 		
-		const client = await serverSupabaseClient(event);
+		const client = await getAuthenticatedClient(event);
 		
 		// RLS policies handle access:
 		// - Admins can view their own hostels

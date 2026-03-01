@@ -9,13 +9,13 @@
  * This endpoint is for development/testing purposes only.
  */
 
-import { serverSupabaseUser } from "#supabase/server"
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import { sendNotification } from "../../utils/notifications"
 
 export default defineEventHandler(async (event) => {
   try {
     // Verify user is authenticated
-    const user = await serverSupabaseUser(event)
+    const user = await getAuthUser(event)
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
     }

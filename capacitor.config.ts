@@ -26,6 +26,14 @@ const config: CapacitorConfig = {
 		webContentsDebuggingEnabled: true, // Set to false for production release
 	},
 	plugins: {
+		// Route all fetch/XHR through native HTTP client — bypasses CORS entirely
+		CapacitorHttp: {
+			enabled: true,
+		},
+		// Handle cookies natively (useful for Supabase auth)
+		CapacitorCookies: {
+			enabled: true,
+		},
 		SplashScreen: {
 			launchShowDuration: 2000,
 			backgroundColor: "#FFEE91",

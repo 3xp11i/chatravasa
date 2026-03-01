@@ -1,13 +1,13 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import { isStaffForHostel, staffHasPermission } from "#imports"
 
 export default defineEventHandler(async (event) => {
   try {
-    const user = await serverSupabaseUser(event)
+    const user = await getAuthUser(event)
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
     }
-    const client = await serverSupabaseClient(event)
+    const client = await getAuthenticatedClient(event)
 
     const body = await readBody<{
       hostel_slug: string

@@ -1,8 +1,8 @@
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
+  const user = await getAuthUser(event)
 
   if (!user) {
     throw createError({
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const client = await serverSupabaseClient<Database>(event)
+  const client = await getAuthenticatedClient(event)
 
   try {
     // Delete existing avatar files for the user (if any)

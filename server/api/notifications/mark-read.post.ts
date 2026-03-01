@@ -12,13 +12,13 @@
  * One of notificationId or markAll must be provided.
  */
 
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import type { Database } from "~/types/database.types"
 
 export default defineEventHandler(async (event) => {
   try {
     // Verify user is authenticated
-    const user = await serverSupabaseUser(event)
+    const user = await getAuthUser(event)
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
     }
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const userId = (user as any).sub || (user as any).id
-    const client = await serverSupabaseClient<Database>(event)
+    const client = await getAuthenticatedClient(event)
 
     if (markAll) {
       // Mark all user's notifications as read

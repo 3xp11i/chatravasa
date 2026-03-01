@@ -1,4 +1,4 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 
 // Generate slug from hostel name
 function generateSlug(name: string): string {
@@ -12,11 +12,11 @@ function generateSlug(name: string): string {
 
 export default defineEventHandler(async (event) => {
 	try {
-		const user = await serverSupabaseUser(event);
+		const user = await getAuthUser(event);
 		if (!user) {
 			throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
 		}
-		const client = await serverSupabaseClient(event);
+		const client = await getAuthenticatedClient(event);
 
 		// Use 'sub' which is the user ID in the JWT
 		const userId = user.sub;

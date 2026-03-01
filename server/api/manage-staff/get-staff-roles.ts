@@ -1,13 +1,13 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import type { Database } from "~/types/database.types";
 
 export default defineEventHandler(async (event) => {
-    const user = await serverSupabaseUser(event);
+    const user = await getAuthUser(event);
     if (!user) {
         throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
     }
 
-    const supabase = await serverSupabaseClient<Database>(event)
+    const supabase = await getAuthenticatedClient(event)
     const query = getQuery(event)
     const hostel_slug = query.hostel_slug as string
 

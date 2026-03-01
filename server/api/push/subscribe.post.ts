@@ -14,13 +14,13 @@
  * If a subscription with the same endpoint exists, it will be updated (upsert).
  */
 
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import type { Database } from "~/types/database.types"
 
 export default defineEventHandler(async (event) => {
   try {
     // Verify user is authenticated
-    const user = await serverSupabaseUser(event)
+    const user = await getAuthUser(event)
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
     }
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const client = await serverSupabaseClient<Database>(event)
+    const client = await getAuthenticatedClient(event)
 
     // Upsert subscription - update if endpoint exists, insert if not
     // This handles cases where user re-enables notifications

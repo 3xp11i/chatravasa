@@ -1,8 +1,8 @@
-import { serverSupabaseUser } from "#supabase/server";
+import { getAuthUser, getAuthenticatedClient } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
-    const user = await serverSupabaseUser(event);
+    const user = await getAuthUser(event);
     console.log("[test-endpoint] User:", user?.id);
     
     return {

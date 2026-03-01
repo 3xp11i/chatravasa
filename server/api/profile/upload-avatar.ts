@@ -1,12 +1,12 @@
 // Upload avatar to Supabase storage and update profile
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
+import { getAuthUser, getAuthenticatedClient } from '../../utils/auth'
 import type { Database } from '~/types/database.types'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 export default defineEventHandler(async (event) => {
   // Get the user from the server-side auth
-  const user = await serverSupabaseUser(event)
+  const user = await getAuthUser(event)
 
   if (!user) {
     throw createError({
@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const client = await serverSupabaseClient<Database>(event)
+    const client = await getAuthenticatedClient(event)
 
     // Generate unique filename
     const timestamp = Date.now()

@@ -1,14 +1,14 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server"
+import { getAuthUser, getAuthenticatedClient } from '../../../utils/auth'
 import type { Database } from "~/types/database.types"
 
 // Get resident's own complaints and public complaints from their hostel
 export default defineEventHandler(async (event) => {
   try {
-    const user = await serverSupabaseUser(event)
+    const user = await getAuthUser(event)
     if (!user) {
       throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
     }
-    const client = await serverSupabaseClient<Database>(event)
+    const client = await getAuthenticatedClient(event)
     const query = getQuery(event)
     const filter = query.filter as string | undefined // 'my' | 'public' | undefined (all)
 
