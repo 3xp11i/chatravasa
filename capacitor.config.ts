@@ -7,8 +7,10 @@ const config: CapacitorConfig = {
 	server: {
 		// Use https scheme for local files (required for some APIs like cookies)
 		androidScheme: "https",
-		// Allows Capacitor app to make requests to your API
+		// Allows Capacitor app to make requests to your API and external services
 		allowNavigation: [
+			"localhost",  // Local development
+			"127.0.0.1",  // Fallback IP
 			"dev.app.chatravasa.com",
 			"app.chatravasa.com",
 			"*.chatravasa.com",
