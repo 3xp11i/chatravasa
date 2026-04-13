@@ -29,3 +29,5 @@ sw.*
 
 android
 server/config/*
+
+dev-*

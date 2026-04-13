@@ -37,6 +37,84 @@ export type Database = {
           },
         ]
       }
+      announcement_reactions: {
+        Row: {
+          announcement_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reactions_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "hostel_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcement_replies: {
+        Row: {
+          announcement_id: string
+          author: string
+          created_at: string | null
+          id: string
+          message: string
+          updated_at: string | null
+        }
+        Insert: {
+          announcement_id: string
+          author: string
+          created_at?: string | null
+          id?: string
+          message: string
+          updated_at?: string | null
+        }
+        Update: {
+          announcement_id?: string
+          author?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_replies_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "hostel_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_replies_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaint_upvotes: {
         Row: {
           complaint_id: string
@@ -69,6 +147,57 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hostel_announcements: {
+        Row: {
+          author: string
+          content: string
+          created_at: string | null
+          hostel_id: string
+          id: string
+          media_type: string | null
+          media_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author: string
+          content: string
+          created_at?: string | null
+          hostel_id: string
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string | null
+          hostel_id?: string
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hostel_announcements_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hostel_announcements_hostel_id_fkey"
+            columns: ["hostel_id"]
+            isOneToOne: false
+            referencedRelation: "hostels"
             referencedColumns: ["id"]
           },
         ]
@@ -500,11 +629,13 @@ export type Database = {
           created_at: string
           hostel_id: string
           id: string
+          manage_announcements: boolean | null
           manage_complaints: boolean
           manage_fees: boolean
           manage_meals: boolean
           manage_residents: boolean
           title: string
+          view_announcements: boolean | null
           view_complaints: boolean
           view_fees: boolean
           view_meals: boolean
@@ -514,11 +645,13 @@ export type Database = {
           created_at?: string
           hostel_id: string
           id?: string
+          manage_announcements?: boolean | null
           manage_complaints?: boolean
           manage_fees?: boolean
           manage_meals?: boolean
           manage_residents?: boolean
           title: string
+          view_announcements?: boolean | null
           view_complaints?: boolean
           view_fees?: boolean
           view_meals?: boolean
@@ -528,11 +661,13 @@ export type Database = {
           created_at?: string
           hostel_id?: string
           id?: string
+          manage_announcements?: boolean | null
           manage_complaints?: boolean
           manage_fees?: boolean
           manage_meals?: boolean
           manage_residents?: boolean
           title?: string
+          view_announcements?: boolean | null
           view_complaints?: boolean
           view_fees?: boolean
           view_meals?: boolean
@@ -700,7 +835,9 @@ export type Database = {
           created_at: string | null
           endpoint: string
           id: string
+          native_token: string | null
           p256dh: string
+          platform: string | null
           updated_at: string | null
           user_id: string
         }
@@ -709,7 +846,9 @@ export type Database = {
           created_at?: string | null
           endpoint: string
           id?: string
+          native_token?: string | null
           p256dh: string
+          platform?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -718,7 +857,9 @@ export type Database = {
           created_at?: string | null
           endpoint?: string
           id?: string
+          native_token?: string | null
           p256dh?: string
+          platform?: string | null
           updated_at?: string | null
           user_id?: string
         }
