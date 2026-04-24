@@ -1,11 +1,11 @@
 import tailwindcss from "@tailwindcss/vite";
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from "fs";
+import { join } from "path";
 
 // Get app version from package.json
-const packageJsonPath = join(process.cwd(), 'package.json');
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-const appVersion = packageJson.version || '1.0.0';
+const packageJsonPath = join(process.cwd(), "package.json");
+const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+const appVersion = packageJson.version || "1.0.0";
 
 export default defineNuxtConfig({
 	compatibilityDate: "2025-12-18",
@@ -97,14 +97,15 @@ export default defineNuxtConfig({
 		},
 		manifest: {
 			name: "Chatravasa - Students ka Ghar, Digitally Managed",
-			short_name: `Chatravasa Dev ${appVersion}`,
+			short_name: "Chatravasa",
 			description:
-				"Chatravasa Management system for hostel residents and staff",
+				"Student Hostel Management App for staff and residents",
 			theme_color: "#4CAF50",
 			background_color: "#FFEE91",
 			display: "standalone",
 			start_url: "/",
 			scope: "/",
+			orientation: "any",
 			icons: [
 				{
 					src: "pwa-64x64.png",
@@ -129,6 +130,32 @@ export default defineNuxtConfig({
 					sizes: "512x512",
 					type: "image/png",
 					purpose: "any maskable",
+				},
+			],
+			screenshots: [
+				{
+					src: "/screenshots/screenshot1.jpeg",
+					sizes: "540x1200",
+					type: "image/jpeg",
+					label: "Chatravasa app preview 1",
+				},
+				{
+					src: "/screenshots/screenshot2.jpeg",
+					sizes: "540x1200",
+					type: "image/jpeg",
+					label: "Chatravasa app preview 2",
+				},
+				{
+					src: "/screenshots/screenshot3.jpeg",
+					sizes: "540x1200",
+					type: "image/jpeg",
+					label: "Chatravasa app preview 3",
+				},
+				{
+					src: "/screenshots/screenshot4.jpeg",
+					sizes: "540x1200",
+					type: "image/jpeg",
+					label: "Chatravasa app preview 4",
 				},
 			],
 		},
@@ -159,7 +186,8 @@ export default defineNuxtConfig({
 		// VAPID private key for push notifications (server-only)
 		vapidPrivateKey: process.env.NUXT_VAPID_PRIVATE_KEY || "",
 		// VAPID subject for push notifications (server-only)
-		vapidSubject: process.env.NUXT_VAPID_SUBJECT || "mailto:admin@chatravasa.com",
+		vapidSubject:
+			process.env.NUXT_VAPID_SUBJECT || "mailto:admin@chatravasa.com",
 
 		// Public keys (exposed to client via useRuntimeConfig().public)
 		public: {
@@ -182,8 +210,12 @@ export default defineNuxtConfig({
 					content:
 						"Chatravasa Management system for hostel residents and staff",
 				},
-				{ name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" },
-			{ name: "HandheldFriendly", content: "true" },
+				{
+					name: "viewport",
+					content:
+						"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no",
+				},
+				{ name: "HandheldFriendly", content: "true" },
 				{ name: "theme-color", content: "#4CAF50" },
 			],
 			link: [
@@ -193,35 +225,24 @@ export default defineNuxtConfig({
 					href: "/apple-touch-icon-180x180.png",
 					sizes: "180x180",
 				},
+				{
+					rel: "mask-icon",
+					href: "/maskable-icon-512x512.png",
+					color: "#4CAF50",
+				},
 				{ rel: "manifest", href: "/manifest.webmanifest" },
-			],
-		},
-	},
-
-	fonts: {
-		defaults: {
-			weights: [400],
-			styles: ["normal", "italic"],
-			subsets: [
-				"cyrillic-ext",
-				"cyrillic",
-				"greek-ext",
-				"greek",
-				"vietnamese",
-				"latin-ext",
-				"latin",
 			],
 		},
 	},
 	i18n: {
 		// langDir: '~/i18n/locales/',
-		strategy: 'no_prefix',
+		strategy: "no_prefix",
 		defaultLocale: "en",
 		detectBrowserLanguage: {
 			useCookie: true,
-			cookieKey: 'locale',
+			cookieKey: "locale",
 			alwaysRedirect: false,
-			fallbackLocale: 'en'
+			fallbackLocale: "en",
 		},
 		locales: [
 			{ code: "en", name: "English", file: "en.json" },
