@@ -24,7 +24,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get hostel ID from slug
+  // Get hostel ID from slug 
+  // TODO: Why are we getting the hostel ID again? We already have it in the staff session. Can we pass it from client to avoid this extra query?
   const { data: hostel, error: hostelError } = await client
     .from('hostels')
     .select('id, admin_user_id')
@@ -75,13 +76,6 @@ export default defineEventHandler(async (event) => {
     `)
     .eq('hostel_id', hostel.id)
 
-  // Apply search filter if provided
-  if (search) {
-    residentsQuery = residentsQuery.or(
-      `room.ilike.%${search}%,profiles.first_name.ilike.%${search}%,profiles.last_name.ilike.%${search}%,profiles.phone.ilike.%${search}%`
-    )
-  }
-
   const { data: allResidents, error: residentsError } = await residentsQuery.order('room', { ascending: true })
 
   if (residentsError) {
@@ -91,8 +85,25 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // We'll calculate the total after applying status filter
-  const residents = allResidents || []
+  const normalizedSearch = search.toLowerCase()
+
+  // Filter search in memory because PostgREST .or() cannot safely combine columns
+  // from base table and embedded profile table in a single logic tree.
+  const residents = (allResidents || []).filter((resident) => {
+    if (!normalizedSearch) return true
+
+    const profile = resident.profiles as any
+    const fullName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.toLowerCase()
+    const room = (resident.room || '').toLowerCase()
+    const phoneDigits = (profile?.phone || '').replace(/[^\d]/g, '').slice(-10)
+    const searchDigits = normalizedSearch.replace(/[^\d]/g, '')
+
+    return (
+      fullName.includes(normalizedSearch) ||
+      room.includes(normalizedSearch) ||
+      (searchDigits.length > 0 && phoneDigits.includes(searchDigits))
+    )
+  })
 
   // Get resident invites
   const { data: invites, error: invitesError } = await client
