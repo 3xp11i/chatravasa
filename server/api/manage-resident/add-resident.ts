@@ -24,12 +24,25 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 
-		// Validate phone number format - should be +91 followed by 10 digits
-		const isValidPhone = /^\+91\d{10}$/.test(phone);
+		// Normalize to digits-only country code format and validate: 91 followed by 10 digits
+		const normalizedPhone = typeof phone === "string" && phone.startsWith("+") ? phone.slice(1) : phone;
+		const isValidPhone = /^91\d{10}$/.test(normalizedPhone);
 		if (!isValidPhone) {
 			throw createError({
 				statusCode: 400,
-				statusMessage: "Invalid phone number format. Expected format: +91xxxxxxxxxx",
+				statusMessage: "Invalid phone number format. Expected format: 91xxxxxxxxxx",
+			});
+		}
+
+		// Optional family phone must follow the same format when provided
+		const normalizedFamilyPhone =
+			typeof family_phone_number === "string" && family_phone_number.startsWith("+")
+				? family_phone_number.slice(1)
+				: family_phone_number;
+		if (normalizedFamilyPhone && !/^91\d{10}$/.test(normalizedFamilyPhone)) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: "Invalid family phone number format. Expected format: 91xxxxxxxxxx",
 			});
 		}
 
@@ -68,9 +81,6 @@ export default defineEventHandler(async (event) => {
 				});
 			}
 		}
-
-		// Phone is already normalized to +91 format from frontend
-		const normalizedPhone = phone;
 
 		// Check if this phone already exists in resident_invites for this hostel
 		const { data: existingInvite } = await client
@@ -128,7 +138,7 @@ export default defineEventHandler(async (event) => {
 				hostel_id: hostel.id,
 				joining_date: joining_date || null,
 				guardian_name: guardian_name || null,
-				family_phone_number: family_phone_number || null,
+				family_phone_number: normalizedFamilyPhone || null,
 			})
 			.select()
 			.single();

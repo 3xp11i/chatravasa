@@ -19,6 +19,15 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    // Normalize to digits-only country code format and validate: 91 followed by 10 digits
+    const normalizedPhone = typeof phone === 'string' && phone.startsWith('+') ? phone.slice(1) : phone
+    if (!/^91\d{10}$/.test(normalizedPhone)) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'Invalid phone number format. Expected format: 91xxxxxxxxxx'
+        })
+    }
+
     // Get the hostel by slug and verify the admin owns it
     const { data: hostel, error: hostelError } = await supabase
         .from('hostels')
@@ -61,7 +70,7 @@ export default defineEventHandler(async (event) => {
         .insert({
             first_name,
             last_name,
-            phone,
+            phone: normalizedPhone,
             role_id
         })
         .select()
