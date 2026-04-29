@@ -33,6 +33,8 @@
                 <Icon name="material-symbols:refresh" class="text-2xl text-gray-800" />
             </button>
 
+            <InstallButton v-if="authUser" />
+
             <!-- Notifications Button - shown for all authenticated users on dashboard/resident pages -->
             <button 
                 v-if="authUser && showNotificationButton"
@@ -79,6 +81,7 @@
 <script lang="ts" setup>
 
 import { useI18n } from 'vue-i18n';
+import InstallButton from '~/components/InstallButton.vue';
 import NotificationsModal from '~/components/modals/NotificationsModal.vue';
 
 const { t } = useI18n();

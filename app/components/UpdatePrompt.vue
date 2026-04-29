@@ -1,24 +1,24 @@
 <template>
     <div
-    v-if="offlineReady || needRefresh"
+    v-if="$pwa?.offlineReady || $pwa?.needRefresh"
     class="fixed bottom-0 right-0 bg-white border-2 border-green-600 rounded-t-lg shadow-xl p-4 z-50 animate-slide-up"
   >
     <div class="flex items-start gap-3">
       <Icon name="heroicons:arrow-path" class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
       <div class="flex-1">
         <h3 class="font-semibold text-gray-900 mb-1">
-          {{ offlineReady ? 'App ready to work offline' : 'Update Available!' }}
+          {{ $pwa?.offlineReady ? 'App ready to work offline' : 'Update Available!' }}
         </h3>
         <p class="text-sm text-gray-600 mb-3">
-          {{ offlineReady 
+          {{ $pwa?.offlineReady 
             ? 'You can now use this app offline' 
             : 'A new version is available. Click "Reload Now" to update immediately, or it will update automatically next time you restart the app.' 
           }}
         </p>
         <div class="flex gap-2">
           <button
-            v-if="needRefresh"
-            @click="updateServiceWorker(true)"
+            v-if="$pwa?.needRefresh"
+            @click="$pwa?.updateServiceWorker(true)"
             class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
           >
             Reload Now
@@ -27,7 +27,7 @@
             @click="close"
             class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors"
           >
-            {{ needRefresh ? 'On Next Restart' : 'Close' }}
+            {{ $pwa?.needRefresh ? 'On Next Restart' : 'Close' }}
           </button>
         </div>
       </div>
@@ -36,17 +36,10 @@
 </template>
 
 <script setup lang="ts">
-import { useRegisterSW } from 'virtual:pwa-register/vue'
-
-const {
-  offlineReady,
-  needRefresh,
-  updateServiceWorker,
-} = useRegisterSW()
+const { $pwa } = useNuxtApp()
 
 const close = () => {
-  offlineReady.value = false
-  needRefresh.value = false
+  $pwa?.cancelPrompt()
 }
 </script>
 

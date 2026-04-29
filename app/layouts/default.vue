@@ -1,11 +1,11 @@
 <template>
   <div class="relative">
     <!-- Role-based background image -->
-    <img 
+    <!-- <img 
       :src="backgroundImage"
       alt=""
       class="fixed bottom-[-10%] left-[-50%] w-[200%] max-w-none! h-auto opacity-60 -z-10 pointer-events-none"
-    />
+    /> -->
     <Navbar />
     <SideBar />
     <slot />
@@ -18,12 +18,12 @@ import SideBar from '@/components/sideBar.vue'
 import bgAdmin from '@/assets/images/bg_admin.png'
 import bgResident from '@/assets/images/bg_resident.png'
 
-const { isAdmin } = useCurrentUser()
-const { isStaff } = useStaffContext()
+// const { isAdmin } = useCurrentUser()
+// const { isStaff } = useStaffContext()
 
-const backgroundImage = computed(() => {
-  return (isAdmin.value || isStaff.value) ? bgAdmin : bgResident
-})
+// const backgroundImage = computed(() => {
+//   return (isAdmin.value || isStaff.value) ? bgAdmin : bgResident
+// })
 </script>
 
 
