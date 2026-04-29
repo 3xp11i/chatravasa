@@ -11,6 +11,7 @@ definePageMeta({
 const user = useSupabaseUser();
 const { userProfile, fetchUserProfile } = useCurrentUser();
 const { staffContext, loading: staffLoading, fetchStaffContext } = useStaffContext();
+const { hasGoogleIdentity } = useLinkedIdentity();
 
 // Check if user has staff assignments (more reliable than isStaff computed)
 const hasStaffAssignments = computed(() => {
@@ -56,6 +57,13 @@ onMounted(async () => {
   }
   
   // Not admin and not staff - redirect to resident
+  const googleLinked = await hasGoogleIdentity();
+
+  if (!googleLinked) {
+    await navigateTo('/login/resident', { replace: true });
+    return;
+  }
+
   await navigateTo("/resident", { replace: true });
 });
 </script>

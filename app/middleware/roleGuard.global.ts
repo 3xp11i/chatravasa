@@ -1,6 +1,7 @@
 export default defineNuxtRouteMiddleware(async (to) => {
 	const { isAdmin, userProfile, authUser, fetchUserProfile } = useCurrentUser();
 	const { staffContext, fetchStaffContext } = useStaffContext();
+	const { hasGoogleIdentity } = useLinkedIdentity();
 
 	// If not authenticated, let authChecker handle redirects
 	if (!authUser.value) return;
@@ -32,5 +33,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
 	// Prevent admins and staff from accessing /resident section (they should use /dashboard)
 	if (to.path.startsWith("/resident") && (adminFlag || hasStaffAssignments)) {
 		return navigateTo("/dashboard");
+	}
+
+	if (to.path.startsWith("/resident") && !adminFlag && !hasStaffAssignments) {
+		const googleLinked = await hasGoogleIdentity();
+		if (!googleLinked) {
+			return navigateTo("/login/resident");
+		}
 	}
 });

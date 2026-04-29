@@ -3,9 +3,9 @@
     <div class="header">
       <h1 class="text-3xl font-bold">{{ t('manageYourHostels') }}</h1>
       <!-- Staff should not see Add Hostel -->
-      <NuxtLink v-if="apiIsAdmin" to="/dashboard/add-hostel" class="greenBtn">
+      <!-- <NuxtLink v-if="apiIsAdmin" to="/dashboard/add-hostel" class="greenBtn">
         {{ t('addHostel') }}
-      </NuxtLink>
+      </NuxtLink> -->
     </div>
 
     <!-- Loading State -->

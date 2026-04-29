@@ -3,6 +3,7 @@
 // If going to /login and authenticated, redirect to appropriate home (dashboard for admin/staff, resident for residents)
 export default defineNuxtRouteMiddleware(async (to) => {
     const user = useSupabaseUser();
+    const { hasGoogleIdentity } = useLinkedIdentity();
     let hasSession = !!user.value;
     
     // On client-side, check session explicitly
@@ -22,7 +23,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (to.path.startsWith("/login") && (user.value || hasSession)) {
         const { userProfile, fetchUserProfile } = useCurrentUser();
         const { staffContext, fetchStaffContext } = useStaffContext();
-        const residentStore = useResidentStore();
+        const residentData = useResidentData();
 
         // Ensure we have the profile loaded
         if (!userProfile.value) {
@@ -43,13 +44,22 @@ export default defineNuxtRouteMiddleware(async (to) => {
         }
 
         // Check if user is a resident
-        if (!residentStore.isInitialized) {
+        if (!residentData.residentData.value) {
             try {
-                await residentStore.fetchResidentData();
+                await residentData.refresh();
             } catch (e) {}
         }
-        const isResident = !!residentStore.residentData?.hasResident;
+        const isResident = !!residentData.residentData.value?.hasResident;
         if (isResident) {
+            const googleLinked = await hasGoogleIdentity();
+            if (!googleLinked) {
+                if (to.path.startsWith("/login/resident")) {
+                    return;
+                }
+
+                return navigateTo("/login/resident");
+            }
+
             return navigateTo("/resident");
         }
 

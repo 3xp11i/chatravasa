@@ -1,97 +1,114 @@
 import { serverSupabaseServiceRole } from "#supabase/server";
-import type { Database } from "~/types/database.types";
+import { Database } from "~/types/database.types";
 
 export default defineEventHandler(async (event) => {
-  try {
-    const body = await readBody(event);
-    const { phone } = body;
-    console.log("Received phone number:", phone);
+	const body = await readBody(event);
+	const { phone } = body;
 
-    if (!phone) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "Phone number is required",
-      });
-    }
+	if (!phone) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Phone number is required",
+		});
+	}
 
-    const client = serverSupabaseServiceRole(event);
+	// Normalize: strip any '+' prefix so we always work with digits only
+	const normalizedPhone = phone.replace("+", "");
 
-    // Normalize phone number: remove '+' prefix for comparison with auth.users
-    // auth.users stores phone without '+' (e.g., '919170147764')
-    // but resident_invites may have it with '+' (e.g., '+919170147764')
-    const normalizedPhone = phone.startsWith('+') ? phone.slice(1) : phone;
-    const phoneWithPlus = phone.startsWith('+') ? phone : '+' + phone;
+	const client = serverSupabaseServiceRole(event);
+	const admin = client.auth.admin;
 
-    // Check if user exists in auth.users
-    const { data: authUsers, error: authError } = await client.auth.admin.listUsers();
+	// Check if a resident profile already exists with this phone
+	const {
+		data: profile,
+		error: profileError,
+	}: {
+		data: Database["public"]["Tables"]["profiles"]["Row"] | null;
+		error: any;
+	} = await client
+		.from("profiles")
+		.select("id, user_role")
+		.eq("phone", normalizedPhone)
+		.eq("user_role", "resident")
+		.maybeSingle();
 
-    if (authError) {
-      console.error("Auth error:", authError);
-      throw createError({
-        statusCode: 500,
-        statusMessage: "Failed to check user status",
-      });
-    }
+	if (profileError) {
+		console.error("Profile check error:", profileError);
+		throw createError({
+			statusCode: 500,
+			statusMessage: "Failed to check resident status",
+		});
+	}
 
-    // Compare with normalized phone (without '+')
-    const userExists = authUsers.users.some((u) => {
-      const uPhone = u.phone ? (u.phone.startsWith('+') ? u.phone.slice(1) : u.phone) : '';
-      return uPhone === normalizedPhone || u.phone === phone;
-    });
+	if (profile) {
+		const {
+			data: { user },
+			error,
+		} = await admin.getUserById(profile.id);
 
-    // Check if phone exists in resident_invites (try both formats)
-    let invites = [];
-    
-    // First try with the exact phone format sent
-    const { data: invitesExact, error: inviteError1 } = await client
-      .from("resident_invites")
-      .select("id")
-      .eq("phone", phone);
+		if (error) {
+			console.error("Auth user lookup error:", error);
+			throw createError({
+				statusCode: 500,
+				statusMessage: "Failed to check linked Google identity",
+			});
+		}
 
-    if (inviteError1) {
-      console.error("Invite check error:", inviteError1);
-      throw createError({
-        statusCode: 500,
-        statusMessage: "Failed to check invitation status",
-      });
-    }
+		const googleIdentityExists = !!user?.identities?.some((identity) => identity.provider === "google");
 
-    // If not found, try with normalized format
-    if (!invitesExact || invitesExact.length === 0) {
-      const { data: invitesNormalized, error: inviteError2 } = await client
-        .from("resident_invites")
-        .select("id")
-        .eq("phone", normalizedPhone);
+		const {
+			data: invite,
+			error: inviteError,
+		}: {
+			data: Database["public"]["Tables"]["resident_invites"]["Row"] | null;
+			error: any;
+		} = await client
+			.from("resident_invites")
+			.select("id")
+			.eq("phone", normalizedPhone)
+			.maybeSingle();
 
-      if (inviteError2) {
-        console.error("Invite check error:", inviteError2);
-        throw createError({
-          statusCode: 500,
-          statusMessage: "Failed to check invitation status",
-        });
-      }
+		if (inviteError) {
+			console.error("Invite check error:", inviteError);
+			throw createError({
+				statusCode: 500,
+				statusMessage: "Failed to check invitation status",
+			});
+		}
 
-      invites = invitesNormalized || [];
-    } else {
-      invites = invitesExact || [];
-    }
+		return {
+			exists: true,
+			invited: !!invite,
+			googleIdentityExists,
+			canProceed: true,
+		};
+	}
 
-    const isInvited = invites && invites.length > 0;
+	// Check if phone exists in resident_invites
+	const {
+		data: invite,
+		error: inviteError,
+	}: {
+		data: Database["public"]["Tables"]["resident_invites"]["Row"] | null;
+		error: any;
+	} = await client
+		.from("resident_invites")
+		.select("id")
+		.eq("phone", normalizedPhone)
+		.maybeSingle();
 
-    return {
-      exists: userExists,
-      invited: isInvited,
-      canProceed: userExists || isInvited,
-    };
-  } catch (error: any) {
-    if (error.statusCode) {
-      throw error;
-    }
+	if (inviteError) {
+		console.error("Invite check error:", inviteError);
+		throw createError({
+			statusCode: 500,
+			statusMessage: "Failed to check invitation status",
+		});
+	}
 
-    console.error("Error in check-resident API:", error);
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message || "Internal server error",
-    });
-  }
+	return {
+		exists: !!profile,
+		invited: !!invite,
+		googleIdentityExists: false,
+		canProceed: !!profile || !!invite,
+	};
 });
