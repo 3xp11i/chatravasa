@@ -13,8 +13,10 @@ export const useCurrentUser = () => {
   const error = useState<string | null>('user-profile-error', () => null)
   const hasFetched = useState<boolean>('user-profile-fetched', () => false)
 
-  const isAdmin = computed(() => userProfile.value?.is_admin ?? authUser.value?.user_metadata?.is_admin ?? false)
-  const isResident = computed(() => !!authUser.value && !isAdmin.value)
+  const isAdmin = computed(() => userProfile.value?.user_role === 'admin')
+  const isResident = computed(() => userProfile.value?.user_role === 'resident')
+  const isStaff = computed(() => userProfile.value?.user_role === 'staff_member')
+
   const userName = computed(() => {
     if (!userProfile.value) return ''
     return `${userProfile.value.first_name} ${userProfile.value.last_name}`
@@ -218,6 +220,7 @@ export const useCurrentUser = () => {
     authUser,
     isAdmin,
     isResident,
+    isStaff,
     userName,
     loading,
     error,

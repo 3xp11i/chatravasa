@@ -58,8 +58,6 @@ onMounted(async () => {
   await initializeApp()
   initialize()
 })
-
-console.log(useSupabaseUser().value);
 </script>
 
 <style scoped>

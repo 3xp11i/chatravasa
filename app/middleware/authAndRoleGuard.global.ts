@@ -1,6 +1,6 @@
-// Check if user is logged in by checking the supabase user, 
-// If going to /dashboard and not authenticated, not redirect to login page
-// If going to /login and authenticated, redirect to appropriate home (dashboard for admin/staff, resident for residents)
+// Server-side redirect middleware for authentication and role-based routing.
+// Handles: root path (/), login redirects, and access control for protected routes.
+// Runs on both client and server, redirects happen before page renders.
 export default defineNuxtRouteMiddleware(async (to) => {
     const user = useSupabaseUser();
     const { hasGoogleIdentity } = useLinkedIdentity();
@@ -13,6 +13,49 @@ export default defineNuxtRouteMiddleware(async (to) => {
         hasSession = !!session?.user;
     }
 
+    // Handle root path redirect based on authentication and role
+    if (to.path === "/") {
+        if (!hasSession) {
+            return navigateTo("/login");
+        }
+
+        const { userProfile, fetchUserProfile } = useCurrentUser();
+        
+        // Ensure we have the profile loaded
+        if (!userProfile.value) {
+            await fetchUserProfile();
+        }
+
+        // Check user role from profiles.user_role column
+        const userRole = userProfile.value?.user_role;
+
+        if (userRole === 'admin' || userRole === 'staff_member') {
+            return navigateTo("/dashboard");
+        }
+        
+        // Check resident status
+        if (userRole === 'resident') {
+            const residentData = useResidentData();
+            // Verify resident data is loaded
+            if (!residentData.residentData.value) {
+                try {
+                    await residentData.refresh();
+                } catch (e) {}
+            }
+
+            // Only proceed if resident record exists
+            if (residentData.residentData.value?.hasResident) {
+                const googleLinked = await hasGoogleIdentity();
+                if (!googleLinked) {
+                    return navigateTo("/login");
+                }
+                return navigateTo("/resident");
+            }
+        }
+
+        // Fallback for unrecognized role or no resident record
+        return navigateTo("/login");
+    }
 
     // Block access to /dashboard or /resident if not authenticated
     if ((to.path.startsWith("/dashboard") || to.path.startsWith("/resident")) && !hasSession && !user.value) {
@@ -22,48 +65,45 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // If already authenticated and visiting /login, route to role home
     if (to.path.startsWith("/login") && (user.value || hasSession)) {
         const { userProfile, fetchUserProfile } = useCurrentUser();
-        const { staffContext, fetchStaffContext } = useStaffContext();
-        const residentData = useResidentData();
-
+        
         // Ensure we have the profile loaded
         if (!userProfile.value) {
             await fetchUserProfile();
         }
 
-        // Check admin status first
-        const isAdminUser = userProfile.value?.is_admin ?? user.value?.user_metadata?.is_admin ?? false;
-        if (isAdminUser) {
+        // Check user role from profiles.user_role column
+        const userRole = userProfile.value?.user_role;
+
+        // Admin and staff members go to dashboard
+        if (userRole === 'admin' || userRole === 'staff_member') {
             return navigateTo("/dashboard");
         }
-
-        // Fetch staff context to check if user is staff
-        await fetchStaffContext();
-        const hasStaffAssignments = staffContext.value.assignments && staffContext.value.assignments.length > 0;
-        if (hasStaffAssignments) {
-            return navigateTo("/dashboard");
-        }
-
-        // Check if user is a resident
-        if (!residentData.residentData.value) {
-            try {
-                await residentData.refresh();
-            } catch (e) {}
-        }
-        const isResident = !!residentData.residentData.value?.hasResident;
-        if (isResident) {
-            const googleLinked = await hasGoogleIdentity();
-            if (!googleLinked) {
-                if (to.path.startsWith("/login/resident")) {
-                    return;
-                }
-
-                return navigateTo("/login/resident");
+        
+        // Handle resident redirect
+        if (userRole === 'resident') {
+            const residentData = useResidentData();
+            // Verify resident data is loaded
+            if (!residentData.residentData.value) {
+                try {
+                    await residentData.refresh();
+                } catch (e) {}
             }
 
-            return navigateTo("/resident");
+            // Only redirect to resident if resident record exists and Google is linked
+            if (residentData.residentData.value?.hasResident) {
+                const googleLinked = await hasGoogleIdentity();
+                if (!googleLinked) {
+                    // Resident without Google - stay on login to show Google linking UI
+                    return;
+                }
+                return navigateTo("/resident");
+            }
+
+            // Resident record doesn't exist yet - stay on login
+            return;
         }
 
-        // If not admin, not staff, not resident, fallback to /dashboard
+        // Fallback - unrecognized role
         return navigateTo("/dashboard");
     }
 });
