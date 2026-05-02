@@ -1,9 +1,21 @@
 import {
 	defineConfig,
-	minimal2023Preset as preset,
+	minimal2023Preset,
 } from "@vite-pwa/assets-generator/config";
 
 export default defineConfig({
-	preset,
-	images: ["public/icon.png"],
+	headLinkOptions: {
+		preset: "2023",
+	},
+	preset: {
+		...minimal2023Preset,
+		maskable: {
+			...minimal2023Preset.maskable,
+			resizeOptions: {
+				background: "#fadc38",
+				fit: "contain",
+			},
+		},
+	},
+	images: ["public/chatravasa_logo.png"],
 });
